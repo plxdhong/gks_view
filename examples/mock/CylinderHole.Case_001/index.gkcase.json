@@ -1,0 +1,20 @@
+{
+  "gksVersion": "0.1",
+  "caseId": "CylinderHole.Case_001",
+  "title": "Cylinder Hole Case 001",
+  "createdAt": "2026-06-04T12:00:00Z",
+  "producer": {
+    "name": "mock-gtest-dump",
+    "version": "0.1",
+    "kernel": "mock",
+    "buildType": "Debug",
+    "gitCommit": "unknown"
+  },
+  "snapshots": [
+    {
+      "snapshotId": "00_cylinder_hole",
+      "title": "Cylinder hole",
+      "file": "00_cylinder_hole.gkscene.json"
+    }
+  ]
+}

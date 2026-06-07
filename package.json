@@ -1,0 +1,27 @@
+{
+  "name": "geometry-kernel-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VSCode Geometry Kernel Workbench for GKS scene snapshots.",
+  "packageManager": "bun@1.3.14",
+  "scripts": {
+    "build": "bun run --cwd packages/gks-schema build && bun run --cwd packages/vscode-extension build",
+    "cmake:configure": "cmake -S packages/native-common -B build/native-common",
+    "cmake:configure:occ": "bun scripts/configure-occ-wrapper.mjs",
+    "cmake:build:occ": "cmake --build build/occ-wrapper",
+    "dev:webview": "bun run --cwd packages/vscode-extension dev",
+    "generate:mocks": "bun scripts/generate-mocks.mjs",
+    "occ:fetch": "bun scripts/fetch-occt-release.mjs",
+    "occ:fetch-binary": "bun scripts/fetch-occt-binary.mjs",
+    "occ:build-release": "bun scripts/fetch-occt-release.mjs --build",
+    "occ:example": "bun scripts/run-occ-example.mjs",
+    "verify:adapter": "bun scripts/verify-mock-adapter.mjs",
+    "validate:mocks": "bun scripts/validate-mocks.mjs"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

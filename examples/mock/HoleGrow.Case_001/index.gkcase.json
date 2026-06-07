@@ -1,0 +1,30 @@
+{
+  "gksVersion": "0.1",
+  "caseId": "HoleGrow.Case_001",
+  "title": "HoleGrow Case 001",
+  "createdAt": "2026-06-04T12:00:00Z",
+  "producer": {
+    "name": "mock-gtest-dump",
+    "version": "0.1",
+    "kernel": "mock",
+    "buildType": "Debug",
+    "gitCommit": "unknown"
+  },
+  "snapshots": [
+    {
+      "snapshotId": "00_input",
+      "title": "Input body",
+      "file": "00_input.gkscene.json"
+    },
+    {
+      "snapshotId": "01_seed_face",
+      "title": "Seed face selected",
+      "file": "01_seed_face.gkscene.json"
+    },
+    {
+      "snapshotId": "02_after_grow",
+      "title": "After hole grow",
+      "file": "02_after_grow.gkscene.json"
+    }
+  ]
+}

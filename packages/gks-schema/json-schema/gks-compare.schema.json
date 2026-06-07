@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gk-workbench.local/schema/gks-compare.schema.json",
+  "title": "GKS Compare",
+  "type": "object",
+  "required": ["gksVersion", "compareId", "scenes"],
+  "additionalProperties": true,
+  "properties": {
+    "gksVersion": {
+      "const": "0.1"
+    },
+    "compareId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "layout": {
+      "enum": ["split", "grid"]
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["viewId", "file"],
+        "additionalProperties": true,
+        "properties": {
+          "viewId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "kernel": {
+            "type": "string"
+          },
+          "adapterId": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
+

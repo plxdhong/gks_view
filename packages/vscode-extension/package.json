@@ -1,0 +1,97 @@
+{
+  "name": "@gk-workbench/vscode-extension",
+  "displayName": "Geometry Kernel Workbench",
+  "description": "Open GKS geometry snapshot files in a VSCode webview workbench.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "gk-workbench",
+  "engines": {
+    "vscode": "^1.88.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "activationEvents": [
+    "onCustomEditor:gkWorkbench.gkcase",
+    "onCustomEditor:gkWorkbench.gkscene",
+    "onCustomEditor:gkWorkbench.gkcompare",
+    "onCommand:gkWorkbench.openSnapshot",
+    "onCommand:gkWorkbench.revealEntity"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gkWorkbench.openSnapshot",
+        "title": "Geometry: Open Snapshot"
+      },
+      {
+        "command": "gkWorkbench.openCompare",
+        "title": "Geometry: Open Compare View"
+      },
+      {
+        "command": "gkWorkbench.attachAdapter",
+        "title": "Geometry: Attach Kernel Adapter"
+      },
+      {
+        "command": "gkWorkbench.runAdapterCommand",
+        "title": "Geometry: Run Adapter Command"
+      },
+      {
+        "command": "gkWorkbench.revealEntity",
+        "title": "Geometry: Reveal Entity"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "gkWorkbench.gkcase",
+        "displayName": "Geometry Workbench Case",
+        "selector": [
+          {
+            "filenamePattern": "*.gkcase.json"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "gkWorkbench.gkscene",
+        "displayName": "Geometry Workbench Scene",
+        "selector": [
+          {
+            "filenamePattern": "*.gkscene.json"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "gkWorkbench.gkcompare",
+        "displayName": "Geometry Workbench Compare",
+        "selector": [
+          {
+            "filenamePattern": "*.gkcompare.json"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "bun run build:extension && bun run build:webview",
+    "build:extension": "tsc -p tsconfig.json",
+    "build:webview": "vite build --config webview/vite.config.ts",
+    "dev": "vite --host 127.0.0.1 --config webview/vite.config.ts",
+    "watch": "tsc -watch -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gk-workbench/gks-schema": "file:../gks-schema",
+    "three": "^0.165.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/three": "^0.165.0",
+    "@types/vscode": "^1.88.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.12"
+  }
+}

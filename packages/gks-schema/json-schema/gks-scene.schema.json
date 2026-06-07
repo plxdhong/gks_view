@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gk-workbench.local/schema/gks-scene.schema.json",
+  "title": "GKS Scene",
+  "type": "object",
+  "required": ["gksVersion", "sceneId", "snapshotId", "source", "topology", "geometry"],
+  "additionalProperties": true,
+  "properties": {
+    "gksVersion": {
+      "const": "0.1"
+    },
+    "sceneId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "caseId": {
+      "type": "string"
+    },
+    "snapshotId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "required": ["kernel"],
+      "additionalProperties": true,
+      "properties": {
+        "kernel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adapterId": {
+          "type": "string"
+        },
+        "modelId": {
+          "type": "string"
+        }
+      }
+    },
+    "bbox": {
+      "$ref": "#/$defs/bbox"
+    },
+    "cameraHint": {
+      "type": "object",
+      "required": ["target", "position"],
+      "additionalProperties": true,
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/vec3"
+        },
+        "position": {
+          "$ref": "#/$defs/vec3"
+        },
+        "up": {
+          "$ref": "#/$defs/vec3"
+        }
+      }
+    },
+    "topology": {
+      "type": "object",
+      "required": ["bodies", "regions", "shells", "faces", "loops", "coedges", "edges", "vertices"],
+      "additionalProperties": true,
+      "properties": {
+        "bodies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "shells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "faces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "loops": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "coedges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        },
+        "vertices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entity"
+          }
+        }
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "required": ["faceMeshes", "edgePolylines", "vertexPoints"],
+      "additionalProperties": true,
+      "properties": {
+        "faceMeshes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["entityId", "positions", "indices"],
+            "additionalProperties": true,
+            "properties": {
+              "entityId": {
+                "type": "string"
+              },
+              "positions": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "indices": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "edgePolylines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["entityId", "points"],
+            "additionalProperties": true,
+            "properties": {
+              "entityId": {
+                "type": "string"
+              },
+              "points": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "vertexPoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["entityId", "position"],
+            "additionalProperties": true,
+            "properties": {
+              "entityId": {
+                "type": "string"
+              },
+              "position": {
+                "$ref": "#/$defs/vec3"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "vec3": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "bbox": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": {
+          "$ref": "#/$defs/vec3"
+        },
+        "max": {
+          "$ref": "#/$defs/vec3"
+        }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "required": ["entityId", "kind", "sourceKernel"],
+      "additionalProperties": true,
+      "properties": {
+        "entityId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": ["body", "region", "shell", "face", "loop", "coedge", "edge", "vertex"]
+        },
+        "kernelTag": {
+          "type": ["number", "string"]
+        },
+        "stableId": {
+          "type": "string"
+        },
+        "sourceKernel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "debugName": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+

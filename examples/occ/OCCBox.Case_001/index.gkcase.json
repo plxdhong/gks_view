@@ -1,0 +1,18 @@
+{
+  "gksVersion": "0.1",
+  "caseId": "OCCBox.Case_001",
+  "title": "OCC Box Cut Case 001",
+  "producer": {
+    "name": "gk-occ-wrapper",
+    "version": "0.4.1",
+    "kernel": "occ",
+    "buildType": "example"
+  },
+  "snapshots": [
+    {
+      "snapshotId": "00_occ_box_cut",
+      "title": "OCC box cut through-hole",
+      "file": "00_occ_box_cut.gkscene.json"
+    }
+  ]
+}

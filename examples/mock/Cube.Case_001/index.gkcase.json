@@ -1,0 +1,20 @@
+{
+  "gksVersion": "0.1",
+  "caseId": "Cube.Case_001",
+  "title": "Cube Case 001",
+  "createdAt": "2026-06-04T12:00:00Z",
+  "producer": {
+    "name": "mock-gtest-dump",
+    "version": "0.1",
+    "kernel": "mock",
+    "buildType": "Debug",
+    "gitCommit": "unknown"
+  },
+  "snapshots": [
+    {
+      "snapshotId": "00_cube",
+      "title": "Cube",
+      "file": "00_cube.gkscene.json"
+    }
+  ]
+}

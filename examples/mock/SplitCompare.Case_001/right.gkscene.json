@@ -1,0 +1,2721 @@
+{
+  "gksVersion": "0.1",
+  "sceneId": "SplitCompare.Case_001.right_after_grow",
+  "caseId": "SplitCompare.Case_001",
+  "snapshotId": "right_after_grow",
+  "title": "OCC candidate",
+  "unit": "m",
+  "source": {
+    "kernel": "mock-occ",
+    "adapterId": "mock.occ",
+    "modelId": "compare-right"
+  },
+  "bbox": {
+    "min": [
+      -1,
+      -1,
+      -1
+    ],
+    "max": [
+      1,
+      1,
+      1
+    ]
+  },
+  "cameraHint": {
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "position": [
+      4,
+      -5,
+      3
+    ],
+    "up": [
+      0,
+      0,
+      1
+    ]
+  },
+  "topology": {
+    "bodies": [
+      {
+        "entityId": "body:001",
+        "kind": "body",
+        "kernelTag": 100,
+        "stableId": "body0",
+        "sourceKernel": "mock-occ",
+        "debugName": "Mock block",
+        "bodyType": "solid",
+        "regions": [
+          "region:001"
+        ],
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            -1
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    ],
+    "regions": [
+      {
+        "entityId": "region:001",
+        "kind": "region",
+        "kernelTag": 200,
+        "stableId": "body0/region0",
+        "sourceKernel": "mock-occ",
+        "body": "body:001",
+        "shells": [
+          "shell:001"
+        ]
+      }
+    ],
+    "shells": [
+      {
+        "entityId": "shell:001",
+        "kind": "shell",
+        "kernelTag": 300,
+        "stableId": "body0/region0/shell0",
+        "sourceKernel": "mock-occ",
+        "region": "region:001",
+        "shellType": "closed",
+        "faces": [
+          "face:front",
+          "face:right",
+          "face:back",
+          "face:left",
+          "face:bottom",
+          "face:top"
+        ]
+      }
+    ],
+    "faces": [
+      {
+        "entityId": "face:front",
+        "kind": "face",
+        "kernelTag": 400,
+        "stableId": "body0/region0/shell0/face0",
+        "sourceKernel": "mock-occ",
+        "debugName": "Front",
+        "shell": "shell:001",
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "loops": [
+          "loop:001"
+        ],
+        "edges": [
+          "edge:001",
+          "edge:005",
+          "edge:009",
+          "edge:010"
+        ],
+        "area": 4,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            -1
+          ],
+          "max": [
+            1,
+            -1,
+            1
+          ]
+        },
+        "surfaceInfo": {
+          "normal": [
+            0,
+            -1,
+            0
+          ]
+        },
+        "geometricSignature": {
+          "surfaceType": "plane",
+          "area": 4,
+          "centroid": [
+            0,
+            -1,
+            0
+          ],
+          "bboxDiagonal": 2.8284271247461903
+        }
+      },
+      {
+        "entityId": "face:right",
+        "kind": "face",
+        "kernelTag": 401,
+        "stableId": "body0/region0/shell0/face1",
+        "sourceKernel": "mock-occ",
+        "debugName": "Right",
+        "shell": "shell:001",
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "loops": [
+          "loop:002"
+        ],
+        "edges": [
+          "edge:002",
+          "edge:006",
+          "edge:010",
+          "edge:011"
+        ],
+        "area": 4,
+        "bbox": {
+          "min": [
+            1,
+            -1,
+            -1
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        },
+        "surfaceInfo": {
+          "normal": [
+            1,
+            0,
+            0
+          ]
+        },
+        "geometricSignature": {
+          "surfaceType": "plane",
+          "area": 4,
+          "centroid": [
+            1,
+            0,
+            0
+          ],
+          "bboxDiagonal": 2.8284271247461903
+        }
+      },
+      {
+        "entityId": "face:back",
+        "kind": "face",
+        "kernelTag": 402,
+        "stableId": "body0/region0/shell0/face2",
+        "sourceKernel": "mock-occ",
+        "debugName": "Back",
+        "shell": "shell:001",
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "loops": [
+          "loop:003"
+        ],
+        "edges": [
+          "edge:003",
+          "edge:007",
+          "edge:011",
+          "edge:012"
+        ],
+        "area": 4,
+        "bbox": {
+          "min": [
+            -1,
+            1,
+            -1
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        },
+        "surfaceInfo": {
+          "normal": [
+            0,
+            1,
+            0
+          ]
+        },
+        "geometricSignature": {
+          "surfaceType": "plane",
+          "area": 4,
+          "centroid": [
+            0,
+            1,
+            0
+          ],
+          "bboxDiagonal": 2.8284271247461903
+        }
+      },
+      {
+        "entityId": "face:left",
+        "kind": "face",
+        "kernelTag": 403,
+        "stableId": "body0/region0/shell0/face3",
+        "sourceKernel": "mock-occ",
+        "debugName": "Left",
+        "shell": "shell:001",
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "loops": [
+          "loop:004"
+        ],
+        "edges": [
+          "edge:004",
+          "edge:008",
+          "edge:009",
+          "edge:012"
+        ],
+        "area": 4,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            -1
+          ],
+          "max": [
+            -1,
+            1,
+            1
+          ]
+        },
+        "surfaceInfo": {
+          "normal": [
+            -1,
+            0,
+            0
+          ]
+        },
+        "geometricSignature": {
+          "surfaceType": "plane",
+          "area": 4,
+          "centroid": [
+            -1,
+            0,
+            0
+          ],
+          "bboxDiagonal": 2.8284271247461903
+        }
+      },
+      {
+        "entityId": "face:bottom",
+        "kind": "face",
+        "kernelTag": 404,
+        "stableId": "body0/region0/shell0/face4",
+        "sourceKernel": "mock-occ",
+        "debugName": "Bottom",
+        "shell": "shell:001",
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "loops": [
+          "loop:005"
+        ],
+        "edges": [
+          "edge:001",
+          "edge:002",
+          "edge:003",
+          "edge:004"
+        ],
+        "area": 4,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            -1
+          ],
+          "max": [
+            1,
+            1,
+            -1
+          ]
+        },
+        "surfaceInfo": {
+          "normal": [
+            0,
+            0,
+            -1
+          ]
+        },
+        "geometricSignature": {
+          "surfaceType": "plane",
+          "area": 4,
+          "centroid": [
+            0,
+            0,
+            -1
+          ],
+          "bboxDiagonal": 2.8284271247461903
+        }
+      },
+      {
+        "entityId": "face:top",
+        "kind": "face",
+        "kernelTag": 405,
+        "stableId": "body0/region0/shell0/face5",
+        "sourceKernel": "mock-occ",
+        "debugName": "Seed face",
+        "shell": "shell:001",
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "loops": [
+          "loop:006"
+        ],
+        "edges": [
+          "edge:005",
+          "edge:006",
+          "edge:007",
+          "edge:008"
+        ],
+        "area": 4,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            1
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        },
+        "surfaceInfo": {
+          "normal": [
+            0,
+            0,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "surfaceType": "plane",
+          "area": 4,
+          "centroid": [
+            0,
+            0,
+            1
+          ],
+          "bboxDiagonal": 2.8284271247461903
+        }
+      }
+    ],
+    "loops": [
+      {
+        "entityId": "loop:001",
+        "kind": "loop",
+        "kernelTag": 500,
+        "stableId": "body0/region0/shell0/face0/loop0",
+        "sourceKernel": "mock-occ",
+        "face": "face:front",
+        "loopType": "outer",
+        "coedges": [
+          "coedge:001:0",
+          "coedge:001:1",
+          "coedge:001:2",
+          "coedge:001:3"
+        ]
+      },
+      {
+        "entityId": "loop:002",
+        "kind": "loop",
+        "kernelTag": 501,
+        "stableId": "body0/region0/shell0/face1/loop0",
+        "sourceKernel": "mock-occ",
+        "face": "face:right",
+        "loopType": "outer",
+        "coedges": [
+          "coedge:002:0",
+          "coedge:002:1",
+          "coedge:002:2",
+          "coedge:002:3"
+        ]
+      },
+      {
+        "entityId": "loop:003",
+        "kind": "loop",
+        "kernelTag": 502,
+        "stableId": "body0/region0/shell0/face2/loop0",
+        "sourceKernel": "mock-occ",
+        "face": "face:back",
+        "loopType": "outer",
+        "coedges": [
+          "coedge:003:0",
+          "coedge:003:1",
+          "coedge:003:2",
+          "coedge:003:3"
+        ]
+      },
+      {
+        "entityId": "loop:004",
+        "kind": "loop",
+        "kernelTag": 503,
+        "stableId": "body0/region0/shell0/face3/loop0",
+        "sourceKernel": "mock-occ",
+        "face": "face:left",
+        "loopType": "outer",
+        "coedges": [
+          "coedge:004:0",
+          "coedge:004:1",
+          "coedge:004:2",
+          "coedge:004:3"
+        ]
+      },
+      {
+        "entityId": "loop:005",
+        "kind": "loop",
+        "kernelTag": 504,
+        "stableId": "body0/region0/shell0/face4/loop0",
+        "sourceKernel": "mock-occ",
+        "face": "face:bottom",
+        "loopType": "outer",
+        "coedges": [
+          "coedge:005:0",
+          "coedge:005:1",
+          "coedge:005:2",
+          "coedge:005:3"
+        ]
+      },
+      {
+        "entityId": "loop:006",
+        "kind": "loop",
+        "kernelTag": 505,
+        "stableId": "body0/region0/shell0/face5/loop0",
+        "sourceKernel": "mock-occ",
+        "face": "face:top",
+        "loopType": "outer",
+        "coedges": [
+          "coedge:006:0",
+          "coedge:006:1",
+          "coedge:006:2",
+          "coedge:006:3"
+        ]
+      }
+    ],
+    "coedges": [
+      {
+        "entityId": "coedge:001:0",
+        "kind": "coedge",
+        "kernelTag": 600,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge0",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:001",
+        "edge": "edge:001",
+        "sense": "forward",
+        "next": "coedge:001:1",
+        "previous": "coedge:001:3"
+      },
+      {
+        "entityId": "coedge:001:1",
+        "kind": "coedge",
+        "kernelTag": 601,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge1",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:001",
+        "edge": "edge:005",
+        "sense": "forward",
+        "next": "coedge:001:2",
+        "previous": "coedge:001:0"
+      },
+      {
+        "entityId": "coedge:001:2",
+        "kind": "coedge",
+        "kernelTag": 602,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge2",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:001",
+        "edge": "edge:009",
+        "sense": "forward",
+        "next": "coedge:001:3",
+        "previous": "coedge:001:1"
+      },
+      {
+        "entityId": "coedge:001:3",
+        "kind": "coedge",
+        "kernelTag": 603,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge3",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:001",
+        "edge": "edge:010",
+        "sense": "forward",
+        "next": "coedge:001:0",
+        "previous": "coedge:001:2"
+      },
+      {
+        "entityId": "coedge:002:0",
+        "kind": "coedge",
+        "kernelTag": 610,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge0",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:002",
+        "edge": "edge:002",
+        "sense": "forward",
+        "next": "coedge:002:1",
+        "previous": "coedge:002:3"
+      },
+      {
+        "entityId": "coedge:002:1",
+        "kind": "coedge",
+        "kernelTag": 611,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge1",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:002",
+        "edge": "edge:006",
+        "sense": "forward",
+        "next": "coedge:002:2",
+        "previous": "coedge:002:0"
+      },
+      {
+        "entityId": "coedge:002:2",
+        "kind": "coedge",
+        "kernelTag": 612,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge2",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:002",
+        "edge": "edge:010",
+        "sense": "forward",
+        "next": "coedge:002:3",
+        "previous": "coedge:002:1"
+      },
+      {
+        "entityId": "coedge:002:3",
+        "kind": "coedge",
+        "kernelTag": 613,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge3",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:002",
+        "edge": "edge:011",
+        "sense": "forward",
+        "next": "coedge:002:0",
+        "previous": "coedge:002:2"
+      },
+      {
+        "entityId": "coedge:003:0",
+        "kind": "coedge",
+        "kernelTag": 620,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge0",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:003",
+        "edge": "edge:003",
+        "sense": "forward",
+        "next": "coedge:003:1",
+        "previous": "coedge:003:3"
+      },
+      {
+        "entityId": "coedge:003:1",
+        "kind": "coedge",
+        "kernelTag": 621,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge1",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:003",
+        "edge": "edge:007",
+        "sense": "forward",
+        "next": "coedge:003:2",
+        "previous": "coedge:003:0"
+      },
+      {
+        "entityId": "coedge:003:2",
+        "kind": "coedge",
+        "kernelTag": 622,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge2",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:003",
+        "edge": "edge:011",
+        "sense": "forward",
+        "next": "coedge:003:3",
+        "previous": "coedge:003:1"
+      },
+      {
+        "entityId": "coedge:003:3",
+        "kind": "coedge",
+        "kernelTag": 623,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge3",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:003",
+        "edge": "edge:012",
+        "sense": "forward",
+        "next": "coedge:003:0",
+        "previous": "coedge:003:2"
+      },
+      {
+        "entityId": "coedge:004:0",
+        "kind": "coedge",
+        "kernelTag": 630,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge0",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:004",
+        "edge": "edge:004",
+        "sense": "forward",
+        "next": "coedge:004:1",
+        "previous": "coedge:004:3"
+      },
+      {
+        "entityId": "coedge:004:1",
+        "kind": "coedge",
+        "kernelTag": 631,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge1",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:004",
+        "edge": "edge:008",
+        "sense": "forward",
+        "next": "coedge:004:2",
+        "previous": "coedge:004:0"
+      },
+      {
+        "entityId": "coedge:004:2",
+        "kind": "coedge",
+        "kernelTag": 632,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge2",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:004",
+        "edge": "edge:009",
+        "sense": "forward",
+        "next": "coedge:004:3",
+        "previous": "coedge:004:1"
+      },
+      {
+        "entityId": "coedge:004:3",
+        "kind": "coedge",
+        "kernelTag": 633,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge3",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:004",
+        "edge": "edge:012",
+        "sense": "forward",
+        "next": "coedge:004:0",
+        "previous": "coedge:004:2"
+      },
+      {
+        "entityId": "coedge:005:0",
+        "kind": "coedge",
+        "kernelTag": 640,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge0",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:005",
+        "edge": "edge:001",
+        "sense": "forward",
+        "next": "coedge:005:1",
+        "previous": "coedge:005:3"
+      },
+      {
+        "entityId": "coedge:005:1",
+        "kind": "coedge",
+        "kernelTag": 641,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge1",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:005",
+        "edge": "edge:002",
+        "sense": "forward",
+        "next": "coedge:005:2",
+        "previous": "coedge:005:0"
+      },
+      {
+        "entityId": "coedge:005:2",
+        "kind": "coedge",
+        "kernelTag": 642,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge2",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:005",
+        "edge": "edge:003",
+        "sense": "forward",
+        "next": "coedge:005:3",
+        "previous": "coedge:005:1"
+      },
+      {
+        "entityId": "coedge:005:3",
+        "kind": "coedge",
+        "kernelTag": 643,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge3",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:005",
+        "edge": "edge:004",
+        "sense": "forward",
+        "next": "coedge:005:0",
+        "previous": "coedge:005:2"
+      },
+      {
+        "entityId": "coedge:006:0",
+        "kind": "coedge",
+        "kernelTag": 650,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge0",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:006",
+        "edge": "edge:005",
+        "sense": "forward",
+        "next": "coedge:006:1",
+        "previous": "coedge:006:3"
+      },
+      {
+        "entityId": "coedge:006:1",
+        "kind": "coedge",
+        "kernelTag": 651,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge1",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:006",
+        "edge": "edge:006",
+        "sense": "forward",
+        "next": "coedge:006:2",
+        "previous": "coedge:006:0"
+      },
+      {
+        "entityId": "coedge:006:2",
+        "kind": "coedge",
+        "kernelTag": 652,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge2",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:006",
+        "edge": "edge:007",
+        "sense": "forward",
+        "next": "coedge:006:3",
+        "previous": "coedge:006:1"
+      },
+      {
+        "entityId": "coedge:006:3",
+        "kind": "coedge",
+        "kernelTag": 653,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge3",
+        "sourceKernel": "mock-occ",
+        "loop": "loop:006",
+        "edge": "edge:008",
+        "sense": "forward",
+        "next": "coedge:006:0",
+        "previous": "coedge:006:2"
+      }
+    ],
+    "edges": [
+      {
+        "entityId": "edge:001",
+        "kind": "edge",
+        "kernelTag": 700,
+        "stableId": "body0/region0/shell0/edge0",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:001",
+          "vertex:002"
+        ],
+        "adjacentFaces": [
+          "face:front",
+          "face:bottom"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            -1
+          ],
+          "max": [
+            1,
+            -1,
+            -1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            -1,
+            -1,
+            -1
+          ],
+          "end": [
+            1,
+            -1,
+            -1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:002",
+        "kind": "edge",
+        "kernelTag": 701,
+        "stableId": "body0/region0/shell0/edge1",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:002",
+          "vertex:003"
+        ],
+        "adjacentFaces": [
+          "face:right",
+          "face:bottom"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            1,
+            -1,
+            -1
+          ],
+          "max": [
+            1,
+            1,
+            -1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            1,
+            -1,
+            -1
+          ],
+          "end": [
+            1,
+            1,
+            -1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:003",
+        "kind": "edge",
+        "kernelTag": 702,
+        "stableId": "body0/region0/shell0/edge2",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:003",
+          "vertex:004"
+        ],
+        "adjacentFaces": [
+          "face:back",
+          "face:bottom"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            1,
+            -1
+          ],
+          "max": [
+            1,
+            1,
+            -1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            1,
+            1,
+            -1
+          ],
+          "end": [
+            -1,
+            1,
+            -1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:004",
+        "kind": "edge",
+        "kernelTag": 703,
+        "stableId": "body0/region0/shell0/edge3",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:004",
+          "vertex:001"
+        ],
+        "adjacentFaces": [
+          "face:left",
+          "face:bottom"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            -1
+          ],
+          "max": [
+            -1,
+            1,
+            -1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            -1,
+            1,
+            -1
+          ],
+          "end": [
+            -1,
+            -1,
+            -1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:005",
+        "kind": "edge",
+        "kernelTag": 704,
+        "stableId": "body0/region0/shell0/edge4",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:005",
+          "vertex:006"
+        ],
+        "adjacentFaces": [
+          "face:front",
+          "face:top"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            1
+          ],
+          "max": [
+            1,
+            -1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            -1,
+            -1,
+            1
+          ],
+          "end": [
+            1,
+            -1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:006",
+        "kind": "edge",
+        "kernelTag": 705,
+        "stableId": "body0/region0/shell0/edge5",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:006",
+          "vertex:007"
+        ],
+        "adjacentFaces": [
+          "face:right",
+          "face:top"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            1,
+            -1,
+            1
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            1,
+            -1,
+            1
+          ],
+          "end": [
+            1,
+            1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:007",
+        "kind": "edge",
+        "kernelTag": 706,
+        "stableId": "body0/region0/shell0/edge6",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:007",
+          "vertex:008"
+        ],
+        "adjacentFaces": [
+          "face:back",
+          "face:top"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            1,
+            1
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            1,
+            1,
+            1
+          ],
+          "end": [
+            -1,
+            1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:008",
+        "kind": "edge",
+        "kernelTag": 707,
+        "stableId": "body0/region0/shell0/edge7",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:008",
+          "vertex:005"
+        ],
+        "adjacentFaces": [
+          "face:left",
+          "face:top"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            1
+          ],
+          "max": [
+            -1,
+            1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            -1,
+            1,
+            1
+          ],
+          "end": [
+            -1,
+            -1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:009",
+        "kind": "edge",
+        "kernelTag": 708,
+        "stableId": "body0/region0/shell0/edge8",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:001",
+          "vertex:005"
+        ],
+        "adjacentFaces": [
+          "face:left",
+          "face:front"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            -1,
+            -1
+          ],
+          "max": [
+            -1,
+            -1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            -1,
+            -1,
+            -1
+          ],
+          "end": [
+            -1,
+            -1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:010",
+        "kind": "edge",
+        "kernelTag": 709,
+        "stableId": "body0/region0/shell0/edge9",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:002",
+          "vertex:006"
+        ],
+        "adjacentFaces": [
+          "face:front",
+          "face:right"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            1,
+            -1,
+            -1
+          ],
+          "max": [
+            1,
+            -1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            1,
+            -1,
+            -1
+          ],
+          "end": [
+            1,
+            -1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:011",
+        "kind": "edge",
+        "kernelTag": 710,
+        "stableId": "body0/region0/shell0/edge10",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:003",
+          "vertex:007"
+        ],
+        "adjacentFaces": [
+          "face:right",
+          "face:back"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            1,
+            1,
+            -1
+          ],
+          "max": [
+            1,
+            1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            1,
+            1,
+            -1
+          ],
+          "end": [
+            1,
+            1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      },
+      {
+        "entityId": "edge:012",
+        "kind": "edge",
+        "kernelTag": 711,
+        "stableId": "body0/region0/shell0/edge11",
+        "sourceKernel": "mock-occ",
+        "curveType": "line",
+        "vertices": [
+          "vertex:004",
+          "vertex:008"
+        ],
+        "adjacentFaces": [
+          "face:back",
+          "face:left"
+        ],
+        "length": 2,
+        "bbox": {
+          "min": [
+            -1,
+            1,
+            -1
+          ],
+          "max": [
+            -1,
+            1,
+            1
+          ]
+        },
+        "curveInfo": {
+          "start": [
+            -1,
+            1,
+            -1
+          ],
+          "end": [
+            -1,
+            1,
+            1
+          ]
+        },
+        "geometricSignature": {
+          "curveType": "line",
+          "length": 2
+        }
+      }
+    ],
+    "vertices": [
+      {
+        "entityId": "vertex:001",
+        "kind": "vertex",
+        "kernelTag": 800,
+        "stableId": "body0/region0/shell0/vertex0",
+        "sourceKernel": "mock-occ",
+        "position": [
+          -1,
+          -1,
+          -1
+        ],
+        "edges": [
+          "edge:001",
+          "edge:004",
+          "edge:009"
+        ]
+      },
+      {
+        "entityId": "vertex:002",
+        "kind": "vertex",
+        "kernelTag": 801,
+        "stableId": "body0/region0/shell0/vertex1",
+        "sourceKernel": "mock-occ",
+        "position": [
+          1,
+          -1,
+          -1
+        ],
+        "edges": [
+          "edge:001",
+          "edge:002",
+          "edge:010"
+        ]
+      },
+      {
+        "entityId": "vertex:003",
+        "kind": "vertex",
+        "kernelTag": 802,
+        "stableId": "body0/region0/shell0/vertex2",
+        "sourceKernel": "mock-occ",
+        "position": [
+          1,
+          1,
+          -1
+        ],
+        "edges": [
+          "edge:002",
+          "edge:003",
+          "edge:011"
+        ]
+      },
+      {
+        "entityId": "vertex:004",
+        "kind": "vertex",
+        "kernelTag": 803,
+        "stableId": "body0/region0/shell0/vertex3",
+        "sourceKernel": "mock-occ",
+        "position": [
+          -1,
+          1,
+          -1
+        ],
+        "edges": [
+          "edge:003",
+          "edge:004",
+          "edge:012"
+        ]
+      },
+      {
+        "entityId": "vertex:005",
+        "kind": "vertex",
+        "kernelTag": 804,
+        "stableId": "body0/region0/shell0/vertex4",
+        "sourceKernel": "mock-occ",
+        "position": [
+          -1,
+          -1,
+          1
+        ],
+        "edges": [
+          "edge:005",
+          "edge:008",
+          "edge:009"
+        ]
+      },
+      {
+        "entityId": "vertex:006",
+        "kind": "vertex",
+        "kernelTag": 805,
+        "stableId": "body0/region0/shell0/vertex5",
+        "sourceKernel": "mock-occ",
+        "position": [
+          1,
+          -1,
+          1
+        ],
+        "edges": [
+          "edge:005",
+          "edge:006",
+          "edge:010"
+        ]
+      },
+      {
+        "entityId": "vertex:007",
+        "kind": "vertex",
+        "kernelTag": 806,
+        "stableId": "body0/region0/shell0/vertex6",
+        "sourceKernel": "mock-occ",
+        "position": [
+          1,
+          1,
+          1
+        ],
+        "edges": [
+          "edge:006",
+          "edge:007",
+          "edge:011"
+        ]
+      },
+      {
+        "entityId": "vertex:008",
+        "kind": "vertex",
+        "kernelTag": 807,
+        "stableId": "body0/region0/shell0/vertex7",
+        "sourceKernel": "mock-occ",
+        "position": [
+          -1,
+          1,
+          1
+        ],
+        "edges": [
+          "edge:007",
+          "edge:008",
+          "edge:012"
+        ]
+      }
+    ]
+  },
+  "geometry": {
+    "faceMeshes": [
+      {
+        "entityId": "face:front",
+        "meshId": "mesh:face:front",
+        "positions": [
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          -1,
+          1,
+          -1,
+          1,
+          -1,
+          -1,
+          1
+        ],
+        "normals": [],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ],
+        "uvs": [],
+        "display": {
+          "visible": true,
+          "opacity": 1,
+          "color": "#7dbf97"
+        }
+      },
+      {
+        "entityId": "face:right",
+        "meshId": "mesh:face:right",
+        "positions": [
+          1,
+          -1,
+          -1,
+          1,
+          1,
+          -1,
+          1,
+          1,
+          1,
+          1,
+          -1,
+          1
+        ],
+        "normals": [],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ],
+        "uvs": [],
+        "display": {
+          "visible": true,
+          "opacity": 1,
+          "color": "#7dbf97"
+        }
+      },
+      {
+        "entityId": "face:back",
+        "meshId": "mesh:face:back",
+        "positions": [
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          -1,
+          -1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "normals": [],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ],
+        "uvs": [],
+        "display": {
+          "visible": true,
+          "opacity": 1,
+          "color": "#7dbf97"
+        }
+      },
+      {
+        "entityId": "face:left",
+        "meshId": "mesh:face:left",
+        "positions": [
+          -1,
+          1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          1,
+          1
+        ],
+        "normals": [],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ],
+        "uvs": [],
+        "display": {
+          "visible": true,
+          "opacity": 1,
+          "color": "#7dbf97"
+        }
+      },
+      {
+        "entityId": "face:bottom",
+        "meshId": "mesh:face:bottom",
+        "positions": [
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          1,
+          1,
+          -1,
+          1,
+          -1,
+          -1
+        ],
+        "normals": [],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ],
+        "uvs": [],
+        "display": {
+          "visible": true,
+          "opacity": 1,
+          "color": "#7dbf97"
+        }
+      },
+      {
+        "entityId": "face:top",
+        "meshId": "mesh:face:top",
+        "positions": [
+          -0.92,
+          -0.92,
+          1,
+          0.92,
+          -0.92,
+          1,
+          0.92,
+          0.92,
+          1,
+          -0.92,
+          0.92,
+          1
+        ],
+        "normals": [],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ],
+        "uvs": [],
+        "display": {
+          "visible": true,
+          "opacity": 0.82,
+          "color": "#7dbf97"
+        }
+      }
+    ],
+    "edgePolylines": [
+      {
+        "entityId": "edge:001",
+        "polylineId": "polyline:edge:001",
+        "points": [
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:002",
+        "polylineId": "polyline:edge:002",
+        "points": [
+          1,
+          -1,
+          -1,
+          1,
+          1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:003",
+        "polylineId": "polyline:edge:003",
+        "points": [
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:004",
+        "polylineId": "polyline:edge:004",
+        "points": [
+          -1,
+          1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:005",
+        "polylineId": "polyline:edge:005",
+        "points": [
+          -1,
+          -1,
+          1,
+          1,
+          -1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:006",
+        "polylineId": "polyline:edge:006",
+        "points": [
+          1,
+          -1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:007",
+        "polylineId": "polyline:edge:007",
+        "points": [
+          1,
+          1,
+          1,
+          -1,
+          1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:008",
+        "polylineId": "polyline:edge:008",
+        "points": [
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:009",
+        "polylineId": "polyline:edge:009",
+        "points": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:010",
+        "polylineId": "polyline:edge:010",
+        "points": [
+          1,
+          -1,
+          -1,
+          1,
+          -1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:011",
+        "polylineId": "polyline:edge:011",
+        "points": [
+          1,
+          1,
+          -1,
+          1,
+          1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      },
+      {
+        "entityId": "edge:012",
+        "polylineId": "polyline:edge:012",
+        "points": [
+          -1,
+          1,
+          -1,
+          -1,
+          1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "lineWidth": 1
+        }
+      }
+    ],
+    "vertexPoints": [
+      {
+        "entityId": "vertex:001",
+        "position": [
+          -1,
+          -1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      },
+      {
+        "entityId": "vertex:002",
+        "position": [
+          1,
+          -1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      },
+      {
+        "entityId": "vertex:003",
+        "position": [
+          1,
+          1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      },
+      {
+        "entityId": "vertex:004",
+        "position": [
+          -1,
+          1,
+          -1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      },
+      {
+        "entityId": "vertex:005",
+        "position": [
+          -1,
+          -1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      },
+      {
+        "entityId": "vertex:006",
+        "position": [
+          1,
+          -1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      },
+      {
+        "entityId": "vertex:007",
+        "position": [
+          1,
+          1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      },
+      {
+        "entityId": "vertex:008",
+        "position": [
+          -1,
+          1,
+          1
+        ],
+        "display": {
+          "visible": true,
+          "size": 4
+        }
+      }
+    ],
+    "transientObjects": [
+      {
+        "id": "debug-axis:hole-grow",
+        "kind": "axis",
+        "points": [
+          0,
+          0,
+          -1.3,
+          0,
+          0,
+          1.3
+        ],
+        "color": "#e24b4b"
+      }
+    ]
+  },
+  "properties": {
+    "body:001": {
+      "basic": {
+        "entityId": "body:001",
+        "kind": "body",
+        "tag": 100,
+        "stableId": "body0",
+        "sourceKernel": "mock-occ",
+        "debugName": "Mock block"
+      }
+    },
+    "region:001": {
+      "basic": {
+        "entityId": "region:001",
+        "kind": "region",
+        "tag": 200,
+        "stableId": "body0/region0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "shell:001": {
+      "basic": {
+        "entityId": "shell:001",
+        "kind": "shell",
+        "tag": 300,
+        "stableId": "body0/region0/shell0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "face:front": {
+      "basic": {
+        "entityId": "face:front",
+        "kind": "face",
+        "tag": 400,
+        "stableId": "body0/region0/shell0/face0",
+        "sourceKernel": "mock-occ",
+        "debugName": "Front"
+      },
+      "surface": {
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "area": 4,
+        "edges": [
+          "edge:001",
+          "edge:005",
+          "edge:009",
+          "edge:010"
+        ]
+      }
+    },
+    "face:right": {
+      "basic": {
+        "entityId": "face:right",
+        "kind": "face",
+        "tag": 401,
+        "stableId": "body0/region0/shell0/face1",
+        "sourceKernel": "mock-occ",
+        "debugName": "Right"
+      },
+      "surface": {
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "area": 4,
+        "edges": [
+          "edge:002",
+          "edge:006",
+          "edge:010",
+          "edge:011"
+        ]
+      }
+    },
+    "face:back": {
+      "basic": {
+        "entityId": "face:back",
+        "kind": "face",
+        "tag": 402,
+        "stableId": "body0/region0/shell0/face2",
+        "sourceKernel": "mock-occ",
+        "debugName": "Back"
+      },
+      "surface": {
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "area": 4,
+        "edges": [
+          "edge:003",
+          "edge:007",
+          "edge:011",
+          "edge:012"
+        ]
+      }
+    },
+    "face:left": {
+      "basic": {
+        "entityId": "face:left",
+        "kind": "face",
+        "tag": 403,
+        "stableId": "body0/region0/shell0/face3",
+        "sourceKernel": "mock-occ",
+        "debugName": "Left"
+      },
+      "surface": {
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "area": 4,
+        "edges": [
+          "edge:004",
+          "edge:008",
+          "edge:009",
+          "edge:012"
+        ]
+      }
+    },
+    "face:bottom": {
+      "basic": {
+        "entityId": "face:bottom",
+        "kind": "face",
+        "tag": 404,
+        "stableId": "body0/region0/shell0/face4",
+        "sourceKernel": "mock-occ",
+        "debugName": "Bottom"
+      },
+      "surface": {
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "area": 4,
+        "edges": [
+          "edge:001",
+          "edge:002",
+          "edge:003",
+          "edge:004"
+        ]
+      }
+    },
+    "face:top": {
+      "basic": {
+        "entityId": "face:top",
+        "kind": "face",
+        "tag": 405,
+        "stableId": "body0/region0/shell0/face5",
+        "sourceKernel": "mock-occ",
+        "debugName": "Seed face"
+      },
+      "surface": {
+        "surfaceType": "plane",
+        "orientation": "forward",
+        "area": 4,
+        "edges": [
+          "edge:005",
+          "edge:006",
+          "edge:007",
+          "edge:008"
+        ]
+      },
+      "debug": {
+        "role": "hole grow result",
+        "stopReason": "meet_boundary",
+        "note": "Mock snapshot narrows the top face to represent an algorithm step."
+      }
+    },
+    "loop:001": {
+      "basic": {
+        "entityId": "loop:001",
+        "kind": "loop",
+        "tag": 500,
+        "stableId": "body0/region0/shell0/face0/loop0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "loop:002": {
+      "basic": {
+        "entityId": "loop:002",
+        "kind": "loop",
+        "tag": 501,
+        "stableId": "body0/region0/shell0/face1/loop0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "loop:003": {
+      "basic": {
+        "entityId": "loop:003",
+        "kind": "loop",
+        "tag": 502,
+        "stableId": "body0/region0/shell0/face2/loop0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "loop:004": {
+      "basic": {
+        "entityId": "loop:004",
+        "kind": "loop",
+        "tag": 503,
+        "stableId": "body0/region0/shell0/face3/loop0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "loop:005": {
+      "basic": {
+        "entityId": "loop:005",
+        "kind": "loop",
+        "tag": 504,
+        "stableId": "body0/region0/shell0/face4/loop0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "loop:006": {
+      "basic": {
+        "entityId": "loop:006",
+        "kind": "loop",
+        "tag": 505,
+        "stableId": "body0/region0/shell0/face5/loop0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:001:0": {
+      "basic": {
+        "entityId": "coedge:001:0",
+        "kind": "coedge",
+        "tag": 600,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:001:1": {
+      "basic": {
+        "entityId": "coedge:001:1",
+        "kind": "coedge",
+        "tag": 601,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge1",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:001:2": {
+      "basic": {
+        "entityId": "coedge:001:2",
+        "kind": "coedge",
+        "tag": 602,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge2",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:001:3": {
+      "basic": {
+        "entityId": "coedge:001:3",
+        "kind": "coedge",
+        "tag": 603,
+        "stableId": "body0/region0/shell0/face0/loop0/coedge3",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:002:0": {
+      "basic": {
+        "entityId": "coedge:002:0",
+        "kind": "coedge",
+        "tag": 610,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:002:1": {
+      "basic": {
+        "entityId": "coedge:002:1",
+        "kind": "coedge",
+        "tag": 611,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge1",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:002:2": {
+      "basic": {
+        "entityId": "coedge:002:2",
+        "kind": "coedge",
+        "tag": 612,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge2",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:002:3": {
+      "basic": {
+        "entityId": "coedge:002:3",
+        "kind": "coedge",
+        "tag": 613,
+        "stableId": "body0/region0/shell0/face1/loop0/coedge3",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:003:0": {
+      "basic": {
+        "entityId": "coedge:003:0",
+        "kind": "coedge",
+        "tag": 620,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:003:1": {
+      "basic": {
+        "entityId": "coedge:003:1",
+        "kind": "coedge",
+        "tag": 621,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge1",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:003:2": {
+      "basic": {
+        "entityId": "coedge:003:2",
+        "kind": "coedge",
+        "tag": 622,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge2",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:003:3": {
+      "basic": {
+        "entityId": "coedge:003:3",
+        "kind": "coedge",
+        "tag": 623,
+        "stableId": "body0/region0/shell0/face2/loop0/coedge3",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:004:0": {
+      "basic": {
+        "entityId": "coedge:004:0",
+        "kind": "coedge",
+        "tag": 630,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:004:1": {
+      "basic": {
+        "entityId": "coedge:004:1",
+        "kind": "coedge",
+        "tag": 631,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge1",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:004:2": {
+      "basic": {
+        "entityId": "coedge:004:2",
+        "kind": "coedge",
+        "tag": 632,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge2",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:004:3": {
+      "basic": {
+        "entityId": "coedge:004:3",
+        "kind": "coedge",
+        "tag": 633,
+        "stableId": "body0/region0/shell0/face3/loop0/coedge3",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:005:0": {
+      "basic": {
+        "entityId": "coedge:005:0",
+        "kind": "coedge",
+        "tag": 640,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:005:1": {
+      "basic": {
+        "entityId": "coedge:005:1",
+        "kind": "coedge",
+        "tag": 641,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge1",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:005:2": {
+      "basic": {
+        "entityId": "coedge:005:2",
+        "kind": "coedge",
+        "tag": 642,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge2",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:005:3": {
+      "basic": {
+        "entityId": "coedge:005:3",
+        "kind": "coedge",
+        "tag": 643,
+        "stableId": "body0/region0/shell0/face4/loop0/coedge3",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:006:0": {
+      "basic": {
+        "entityId": "coedge:006:0",
+        "kind": "coedge",
+        "tag": 650,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:006:1": {
+      "basic": {
+        "entityId": "coedge:006:1",
+        "kind": "coedge",
+        "tag": 651,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge1",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:006:2": {
+      "basic": {
+        "entityId": "coedge:006:2",
+        "kind": "coedge",
+        "tag": 652,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge2",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "coedge:006:3": {
+      "basic": {
+        "entityId": "coedge:006:3",
+        "kind": "coedge",
+        "tag": 653,
+        "stableId": "body0/region0/shell0/face5/loop0/coedge3",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "edge:001": {
+      "basic": {
+        "entityId": "edge:001",
+        "kind": "edge",
+        "tag": 700,
+        "stableId": "body0/region0/shell0/edge0",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:front",
+          "face:bottom"
+        ]
+      }
+    },
+    "edge:002": {
+      "basic": {
+        "entityId": "edge:002",
+        "kind": "edge",
+        "tag": 701,
+        "stableId": "body0/region0/shell0/edge1",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:right",
+          "face:bottom"
+        ]
+      }
+    },
+    "edge:003": {
+      "basic": {
+        "entityId": "edge:003",
+        "kind": "edge",
+        "tag": 702,
+        "stableId": "body0/region0/shell0/edge2",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:back",
+          "face:bottom"
+        ]
+      }
+    },
+    "edge:004": {
+      "basic": {
+        "entityId": "edge:004",
+        "kind": "edge",
+        "tag": 703,
+        "stableId": "body0/region0/shell0/edge3",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:left",
+          "face:bottom"
+        ]
+      }
+    },
+    "edge:005": {
+      "basic": {
+        "entityId": "edge:005",
+        "kind": "edge",
+        "tag": 704,
+        "stableId": "body0/region0/shell0/edge4",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:front",
+          "face:top"
+        ]
+      }
+    },
+    "edge:006": {
+      "basic": {
+        "entityId": "edge:006",
+        "kind": "edge",
+        "tag": 705,
+        "stableId": "body0/region0/shell0/edge5",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:right",
+          "face:top"
+        ]
+      }
+    },
+    "edge:007": {
+      "basic": {
+        "entityId": "edge:007",
+        "kind": "edge",
+        "tag": 706,
+        "stableId": "body0/region0/shell0/edge6",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:back",
+          "face:top"
+        ]
+      }
+    },
+    "edge:008": {
+      "basic": {
+        "entityId": "edge:008",
+        "kind": "edge",
+        "tag": 707,
+        "stableId": "body0/region0/shell0/edge7",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:left",
+          "face:top"
+        ]
+      }
+    },
+    "edge:009": {
+      "basic": {
+        "entityId": "edge:009",
+        "kind": "edge",
+        "tag": 708,
+        "stableId": "body0/region0/shell0/edge8",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:left",
+          "face:front"
+        ]
+      }
+    },
+    "edge:010": {
+      "basic": {
+        "entityId": "edge:010",
+        "kind": "edge",
+        "tag": 709,
+        "stableId": "body0/region0/shell0/edge9",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:front",
+          "face:right"
+        ]
+      }
+    },
+    "edge:011": {
+      "basic": {
+        "entityId": "edge:011",
+        "kind": "edge",
+        "tag": 710,
+        "stableId": "body0/region0/shell0/edge10",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:right",
+          "face:back"
+        ]
+      }
+    },
+    "edge:012": {
+      "basic": {
+        "entityId": "edge:012",
+        "kind": "edge",
+        "tag": 711,
+        "stableId": "body0/region0/shell0/edge11",
+        "sourceKernel": "mock-occ"
+      },
+      "curve": {
+        "curveType": "line",
+        "length": 2,
+        "adjacentFaces": [
+          "face:back",
+          "face:left"
+        ]
+      }
+    },
+    "vertex:001": {
+      "basic": {
+        "entityId": "vertex:001",
+        "kind": "vertex",
+        "tag": 800,
+        "stableId": "body0/region0/shell0/vertex0",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "vertex:002": {
+      "basic": {
+        "entityId": "vertex:002",
+        "kind": "vertex",
+        "tag": 801,
+        "stableId": "body0/region0/shell0/vertex1",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "vertex:003": {
+      "basic": {
+        "entityId": "vertex:003",
+        "kind": "vertex",
+        "tag": 802,
+        "stableId": "body0/region0/shell0/vertex2",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "vertex:004": {
+      "basic": {
+        "entityId": "vertex:004",
+        "kind": "vertex",
+        "tag": 803,
+        "stableId": "body0/region0/shell0/vertex3",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "vertex:005": {
+      "basic": {
+        "entityId": "vertex:005",
+        "kind": "vertex",
+        "tag": 804,
+        "stableId": "body0/region0/shell0/vertex4",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "vertex:006": {
+      "basic": {
+        "entityId": "vertex:006",
+        "kind": "vertex",
+        "tag": 805,
+        "stableId": "body0/region0/shell0/vertex5",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "vertex:007": {
+      "basic": {
+        "entityId": "vertex:007",
+        "kind": "vertex",
+        "tag": 806,
+        "stableId": "body0/region0/shell0/vertex6",
+        "sourceKernel": "mock-occ"
+      }
+    },
+    "vertex:008": {
+      "basic": {
+        "entityId": "vertex:008",
+        "kind": "vertex",
+        "tag": 807,
+        "stableId": "body0/region0/shell0/vertex7",
+        "sourceKernel": "mock-occ"
+      }
+    }
+  },
+  "debug": {
+    "algorithm": "HoleGrow",
+    "step": "right_after_grow",
+    "message": "After hole grow",
+    "highlights": {
+      "faces": [
+        "face:top"
+      ],
+      "edges": [
+        "edge:005",
+        "edge:006",
+        "edge:007",
+        "edge:008"
+      ],
+      "vertices": []
+    },
+    "annotations": [
+      {
+        "id": "ann_001",
+        "type": "message",
+        "title": "Stop reason",
+        "text": "Search stopped at the mock top boundary.",
+        "relatedEntities": [
+          "face:top"
+        ],
+        "position": [
+          0,
+          0,
+          1.25
+        ]
+      }
+    ]
+  },
+  "capabilities": {
+    "readonly": true,
+    "interactive": false,
+    "commands": false
+  }
+}
+

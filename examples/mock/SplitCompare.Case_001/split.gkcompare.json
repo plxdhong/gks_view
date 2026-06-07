@@ -1,0 +1,40 @@
+{
+  "gksVersion": "0.1",
+  "compareId": "SplitCompare.Case_001",
+  "title": "Split Compare Case 001",
+  "layout": "split",
+  "createdAt": "2026-06-04T12:00:00Z",
+  "scenes": [
+    {
+      "viewId": "left",
+      "title": "MyKernel",
+      "kernel": "mock-pklike",
+      "adapterId": "mock.pklike",
+      "file": "left.gkscene.json"
+    },
+    {
+      "viewId": "right",
+      "title": "OCC candidate",
+      "kernel": "mock-occ",
+      "adapterId": "mock.occ",
+      "file": "right.gkscene.json"
+    }
+  ],
+  "mapping": {
+    "mode": "manual",
+    "pairs": [
+      {
+        "leftEntityId": "face:top",
+        "rightEntityId": "face:top",
+        "confidence": 0.92,
+        "reason": "same stable path and surface signature"
+      },
+      {
+        "leftEntityId": "edge:005",
+        "rightEntityId": "edge:005",
+        "confidence": 0.88,
+        "reason": "same adjacent top/front faces"
+      }
+    ]
+  }
+}
