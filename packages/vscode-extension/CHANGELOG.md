@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Fixed the release packaging workflow so release-branch version checks can read the previous release commit.
+
 ## 0.1.2
 
 - Added collapsible and resizable left/right workbench panels.
