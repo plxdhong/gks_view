@@ -2,7 +2,7 @@
   "name": "geometry-kernel-workbench",
   "displayName": "Geometry Kernel Workbench",
   "description": "Open GKS geometry snapshot files in a VSCode webview workbench.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "gk-workbench",
   "license": "UNLICENSED",
   "repository": {
@@ -90,8 +90,10 @@
     "package:vsix": "bun ../../scripts/package-vscode-extension.mjs",
     "watch": "tsc -watch -p tsconfig.json"
   },
+  "dependencies": {
+    "@gk-workbench/gks-schema": "workspace:*"
+  },
   "devDependencies": {
-    "@gk-workbench/gks-schema": "file:../gks-schema",
     "@types/node": "^20.14.2",
     "@types/three": "^0.165.0",
     "@types/vscode": "^1.88.0",

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "geometry-kernel-workbench",
+      "name": "gks-view-workspace",
     },
     "packages/gks-schema": {
       "name": "@gk-workbench/gks-schema",
@@ -14,9 +14,11 @@
     },
     "packages/vscode-extension": {
       "name": "geometry-kernel-workbench",
-      "version": "0.1.0",
+      "version": "0.1.1",
+      "dependencies": {
+        "@gk-workbench/gks-schema": "workspace:*",
+      },
       "devDependencies": {
-        "@gk-workbench/gks-schema": "file:../gks-schema",
         "@types/node": "^20.14.2",
         "@types/three": "^0.165.0",
         "@types/vscode": "^1.88.0",
@@ -721,8 +723,6 @@
     "@textlint/linter-formatter/pluralize": ["pluralize@2.0.0", "", {}, "sha512-TqNZzQCD4S42De9IfnnBvILN7HAW7riLqsCyp8lgjXeysyPlX5HhqKAcJHHHb9XskE4/a+7VGC9zzx8Ls0jOAw=="],
 
     "@textlint/linter-formatter/strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
-
-    "geometry-kernel-workbench/@gk-workbench/gks-schema": ["@gk-workbench/gks-schema@file:packages/gks-schema", { "devDependencies": { "typescript": "^5.4.5" } }],
 
     "htmlparser2/entities": ["entities@7.0.1", "", {}, "sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA=="],
 
