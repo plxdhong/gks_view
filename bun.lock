@@ -14,9 +14,11 @@
     },
     "packages/vscode-extension": {
       "name": "geometry-kernel-workbench",
-      "version": "0.1.0",
-      "devDependencies": {
+      "version": "0.1.1",
+      "dependencies": {
         "@gk-workbench/gks-schema": "file:../gks-schema",
+      },
+      "devDependencies": {
         "@types/node": "^20.14.2",
         "@types/three": "^0.165.0",
         "@types/vscode": "^1.88.0",
