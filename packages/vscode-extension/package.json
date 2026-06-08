@@ -91,7 +91,7 @@
     "watch": "tsc -watch -p tsconfig.json"
   },
   "dependencies": {
-    "@gk-workbench/gks-schema": "file:../gks-schema"
+    "@gk-workbench/gks-schema": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
