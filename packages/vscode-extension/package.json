@@ -1,10 +1,16 @@
 {
-  "name": "@gk-workbench/vscode-extension",
+  "name": "geometry-kernel-workbench",
   "displayName": "Geometry Kernel Workbench",
   "description": "Open GKS geometry snapshot files in a VSCode webview workbench.",
   "version": "0.1.0",
-  "private": true,
   "publisher": "gk-workbench",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plxdhong/gks_view.git",
+    "directory": "packages/vscode-extension"
+  },
+  "homepage": "https://github.com/plxdhong/gks_view#readme",
   "engines": {
     "vscode": "^1.88.0"
   },
@@ -81,16 +87,16 @@
     "build:extension": "tsc -p tsconfig.json",
     "build:webview": "vite build --config webview/vite.config.ts",
     "dev": "vite --host 127.0.0.1 --config webview/vite.config.ts",
+    "package:vsix": "bun ../../scripts/package-vscode-extension.mjs",
     "watch": "tsc -watch -p tsconfig.json"
   },
-  "dependencies": {
-    "@gk-workbench/gks-schema": "file:../gks-schema",
-    "three": "^0.165.0"
-  },
   "devDependencies": {
+    "@gk-workbench/gks-schema": "file:../gks-schema",
     "@types/node": "^20.14.2",
     "@types/three": "^0.165.0",
     "@types/vscode": "^1.88.0",
+    "@vscode/vsce": "^3.9.2",
+    "three": "^0.165.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.12"
   }

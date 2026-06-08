@@ -51,6 +51,24 @@ Useful mock artifacts:
 - `examples/mock/HoleGrow.Case_001/index.gkcase.json`
 - `examples/mock/SplitCompare.Case_001/split.gkcompare.json`
 
+## VSCode Extension CI and Release Branch
+
+GitHub Actions build the extension on pushes to `main` and pull requests to
+`main` or `release`.
+
+The `release` branch is the packaging branch. Pull requests targeting
+`release` must increase `packages/vscode-extension/package.json`'s `version`
+field. After a change lands on `release`, GitHub Actions packages a VSIX and
+uploads it as a workflow artifact.
+
+Local packaging uses the same command:
+
+```sh
+bun run package:vscode
+```
+
+The VSIX is written under `build/vsix/`.
+
 ## Adapter Flow
 
 The VSCode command `Geometry: Attach Kernel Adapter` starts the built-in mock
