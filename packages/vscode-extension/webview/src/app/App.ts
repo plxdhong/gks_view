@@ -1,9 +1,14 @@
 import type { EntityIdentity, GksScene, WorkbenchInitialData } from "../schema/GksScene";
-import { buildEntityIndex } from "../schema/GksScene";
+import { buildEntityIndex, descendantIdsForEntity } from "../schema/GksScene";
 import { PropertyPanel } from "../panels/PropertyPanel";
 import { SnapshotTimeline } from "../panels/SnapshotTimeline";
 import { TopologyTreePanel } from "../panels/TopologyTreePanel";
 import { SceneRenderer, type CameraMode, type DisplayMode } from "../viewer/SceneRenderer";
+
+const minPanelWidth = 210;
+const maxPanelWidth = 640;
+const minViewerWidth = 360;
+const resizerWidth = 1;
 
 interface VsCodeApi {
   postMessage(message: unknown): void;
@@ -26,6 +31,11 @@ export class App {
   private entityIndex = new Map<string, EntityIdentity>();
   private activeSceneIndex = 0;
   private selectedEntityId: string | undefined;
+  private readonly hiddenEntityIds = new Set<string>();
+  private leftPanelWidth = readStoredNumber("gkWorkbench.leftPanelWidth", 280);
+  private rightPanelWidth = readStoredNumber("gkWorkbench.rightPanelWidth", 330);
+  private leftPanelCollapsed = readStoredBoolean("gkWorkbench.leftPanelCollapsed", false);
+  private rightPanelCollapsed = readStoredBoolean("gkWorkbench.rightPanelCollapsed", false);
   private cameraMode: CameraMode = "perspective";
   private displayMode: DisplayMode = "all";
 
@@ -62,6 +72,14 @@ export class App {
             <span class="view-reset-icon" aria-hidden="true"></span>
             <span>Reset View</span>
           </button>
+          <div class="panel-toggle-group" role="group" aria-label="Workbench panels">
+            <button class="toolbar-icon-button panel-toggle-button left-panel-toggle" type="button" title="Toggle left panel" aria-label="Toggle left panel" aria-pressed="true">
+              <span class="panel-toggle-icon panel-toggle-icon-left" aria-hidden="true"></span>
+            </button>
+            <button class="toolbar-icon-button panel-toggle-button right-panel-toggle" type="button" title="Toggle right panel" aria-label="Toggle right panel" aria-pressed="true">
+              <span class="panel-toggle-icon panel-toggle-icon-right" aria-hidden="true"></span>
+            </button>
+          </div>
           <label class="search-box">
             <span>Find</span>
             <input class="entity-search" type="search" placeholder="face:top or 400" />
@@ -78,9 +96,11 @@ export class App {
           <div class="topology-host"></div>
         </section>
       </aside>
+      <div class="panel-resizer left-resizer" role="separator" aria-orientation="vertical" aria-label="Resize left panel" tabindex="0"></div>
       <main class="viewer-panel">
         <div class="viewer-layout"></div>
       </main>
+      <div class="panel-resizer right-resizer" role="separator" aria-orientation="vertical" aria-label="Resize right panel" tabindex="0"></div>
       <aside class="right-panel">
         <section class="panel property-panel">
           <h2>Properties</h2>
@@ -94,12 +114,21 @@ export class App {
     `;
 
     this.scene = data.scene;
+    this.applyPanelLayout();
     this.createViewers();
     this.timeline = new SnapshotTimeline(this.mustQuery(".timeline-list"), (snapshotId) => this.activateSnapshot(snapshotId));
-    this.topologyTree = new TopologyTreePanel(this.mustQuery(".topology-host"), (entityId) => this.selectEntity(entityId, true));
-    this.propertyPanel = new PropertyPanel(this.mustQuery(".property-host"));
+    this.topologyTree = new TopologyTreePanel(
+      this.mustQuery(".topology-host"),
+      (entityId) => this.selectEntity(entityId, true, { revealInTree: false }),
+      (entityId) => this.toggleEntityVisibility(entityId)
+    );
+    this.propertyPanel = new PropertyPanel(
+      this.mustQuery(".property-host"),
+      (entityId) => this.revealInTopology(entityId)
+    );
 
     this.setupToolbarControls();
+    this.setupPanelControls();
     this.mustQuery<HTMLInputElement>(".entity-search").addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         this.reveal((event.currentTarget as HTMLInputElement).value.trim());
@@ -116,7 +145,7 @@ export class App {
     const selected = this.selectedEntityId ? this.entityIndex.get(this.selectedEntityId) : undefined;
     this.mustQuery(".brand-meta").textContent = this.titleText();
     this.timeline.render(this.data.snapshots, this.data.activeSnapshotId);
-    this.topologyTree.render(this.scene, this.selectedEntityId);
+    this.renderTopologyTree();
     this.propertyPanel.render(this.scene, selected);
     this.renderDebug();
     this.loadRenderers();
@@ -162,18 +191,28 @@ export class App {
     }
   }
 
-  private selectEntity(entityId: string | undefined, focus: boolean): void {
+  private selectEntity(entityId: string | undefined, focus: boolean, options: { revealInTree?: boolean } = {}): void {
     if (!entityId) {
       return;
     }
+    const revealInTree = options.revealInTree ?? true;
     this.selectedEntityId = entityId;
     this.selectAcrossRenderers(entityId);
     if (focus) {
       this.renderers[this.activeSceneIndex]?.focus(entityId);
     }
-    this.topologyTree.render(this.scene, entityId);
+    this.renderTopologyTree(revealInTree ? entityId : undefined);
     this.propertyPanel.render(this.scene, this.entityIndex.get(entityId));
     this.requestEntityProperties(entityId);
+  }
+
+  private revealInTopology(entityId: string): void {
+    if (!this.entityIndex.has(entityId)) {
+      return;
+    }
+    this.selectedEntityId = entityId;
+    this.selectAcrossRenderers(entityId);
+    this.renderTopologyTree(entityId);
   }
 
   private reveal(query: string): void {
@@ -303,12 +342,12 @@ export class App {
   private loadRenderers(): void {
     if (this.data.mode === "compare" && this.data.compareScenes?.length) {
       this.data.compareScenes.forEach((item, index) => {
-        this.renderers[index]?.loadScene(item.scene, this.selectedEntityId);
+        this.renderers[index]?.loadScene(item.scene, this.selectedEntityId, this.effectiveHiddenEntityIdsForScene(item.scene));
       });
       this.markActiveCompareFrame();
       return;
     }
-    this.renderers[0]?.loadScene(this.scene, this.selectedEntityId);
+    this.renderers[0]?.loadScene(this.scene, this.selectedEntityId, this.effectiveHiddenEntityIdsForScene(this.scene));
   }
 
   private setupToolbarControls(): void {
@@ -329,6 +368,145 @@ export class App {
     });
   }
 
+  private setupPanelControls(): void {
+    this.mustQuery<HTMLButtonElement>(".left-panel-toggle").addEventListener("click", () => {
+      this.leftPanelCollapsed = !this.leftPanelCollapsed;
+      this.storePanelLayout();
+      this.applyPanelLayout();
+    });
+    this.mustQuery<HTMLButtonElement>(".right-panel-toggle").addEventListener("click", () => {
+      this.rightPanelCollapsed = !this.rightPanelCollapsed;
+      this.storePanelLayout();
+      this.applyPanelLayout();
+    });
+
+    this.setupPanelResizer(this.mustQuery(".left-resizer"), "left");
+    this.setupPanelResizer(this.mustQuery(".right-resizer"), "right");
+  }
+
+  private setupPanelResizer(handle: HTMLElement, panel: "left" | "right"): void {
+    handle.addEventListener("pointerdown", (event) => {
+      if ((panel === "left" && this.leftPanelCollapsed) || (panel === "right" && this.rightPanelCollapsed)) {
+        return;
+      }
+      event.preventDefault();
+      const startX = event.clientX;
+      const startWidth = this.actualPanelWidth(panel);
+      this.host.classList.add("is-resizing-panel");
+
+      const onPointerMove = (moveEvent: PointerEvent): void => {
+        const delta = moveEvent.clientX - startX;
+        const nextWidth = panel === "left" ? startWidth + delta : startWidth - delta;
+        this.setPanelWidth(panel, nextWidth);
+      };
+      const onPointerUp = (): void => {
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", onPointerUp);
+        this.host.classList.remove("is-resizing-panel");
+        this.storePanelLayout();
+      };
+
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", onPointerUp);
+    });
+
+    handle.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+        return;
+      }
+      event.preventDefault();
+      const step = event.shiftKey ? 40 : 16;
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const widthDelta = panel === "left" ? direction * step : -direction * step;
+      this.setPanelWidth(panel, (panel === "left" ? this.leftPanelWidth : this.rightPanelWidth) + widthDelta);
+      this.storePanelLayout();
+    });
+  }
+
+  private setPanelWidth(panel: "left" | "right", width: number): void {
+    const clampedWidth = this.clampPanelWidth(panel, width);
+    if (panel === "left") {
+      this.leftPanelWidth = clampedWidth;
+    } else {
+      this.rightPanelWidth = clampedWidth;
+    }
+    this.applyPanelLayout();
+  }
+
+  private applyPanelLayout(): void {
+    this.normalizePanelWidths();
+    this.host.style.setProperty("--left-panel-width", this.leftPanelCollapsed ? "0px" : `${this.leftPanelWidth}px`);
+    this.host.style.setProperty("--right-panel-width", this.rightPanelCollapsed ? "0px" : `${this.rightPanelWidth}px`);
+    this.host.style.setProperty("--left-resizer-width", this.leftPanelCollapsed ? "0px" : `${resizerWidth}px`);
+    this.host.style.setProperty("--right-resizer-width", this.rightPanelCollapsed ? "0px" : `${resizerWidth}px`);
+    this.host.classList.toggle("is-left-collapsed", this.leftPanelCollapsed);
+    this.host.classList.toggle("is-right-collapsed", this.rightPanelCollapsed);
+    this.updatePanelToggleButton(".left-panel-toggle", !this.leftPanelCollapsed);
+    this.updatePanelToggleButton(".right-panel-toggle", !this.rightPanelCollapsed);
+  }
+
+  private updatePanelToggleButton(selector: string, isExpanded: boolean): void {
+    const button = this.host.querySelector<HTMLButtonElement>(selector);
+    if (!button) {
+      return;
+    }
+    button.classList.toggle("is-active", isExpanded);
+    button.setAttribute("aria-pressed", String(isExpanded));
+  }
+
+  private storePanelLayout(): void {
+    writeStoredNumber("gkWorkbench.leftPanelWidth", this.leftPanelWidth);
+    writeStoredNumber("gkWorkbench.rightPanelWidth", this.rightPanelWidth);
+    writeStoredBoolean("gkWorkbench.leftPanelCollapsed", this.leftPanelCollapsed);
+    writeStoredBoolean("gkWorkbench.rightPanelCollapsed", this.rightPanelCollapsed);
+  }
+
+  private actualPanelWidth(panel: "left" | "right"): number {
+    const selector = panel === "left" ? ".left-panel" : ".right-panel";
+    const measuredWidth = this.host.querySelector<HTMLElement>(selector)?.getBoundingClientRect().width ?? 0;
+    if (measuredWidth > 0) {
+      return measuredWidth;
+    }
+    return panel === "left" ? this.leftPanelWidth : this.rightPanelWidth;
+  }
+
+  private clampPanelWidth(panel: "left" | "right", width: number): number {
+    const otherPanelVisible = panel === "left" ? !this.rightPanelCollapsed : !this.leftPanelCollapsed;
+    const otherWidth = otherPanelVisible ? (panel === "left" ? this.rightPanelWidth : this.leftPanelWidth) : 0;
+    const available = this.availablePanelWidth() - otherWidth;
+    const upperBound = Math.max(minPanelWidth, Math.min(maxPanelWidth, available));
+    return Math.round(Math.min(Math.max(width, minPanelWidth), upperBound));
+  }
+
+  private normalizePanelWidths(): void {
+    if (!this.leftPanelCollapsed) {
+      this.leftPanelWidth = this.clampStandaloneWidth(this.leftPanelWidth);
+    }
+    if (!this.rightPanelCollapsed) {
+      this.rightPanelWidth = this.clampStandaloneWidth(this.rightPanelWidth);
+    }
+
+    const available = this.availablePanelWidth();
+    if (!this.leftPanelCollapsed && !this.rightPanelCollapsed && this.leftPanelWidth + this.rightPanelWidth > available) {
+      this.rightPanelWidth = Math.max(minPanelWidth, available - this.leftPanelWidth);
+      if (this.leftPanelWidth + this.rightPanelWidth > available) {
+        this.leftPanelWidth = Math.max(minPanelWidth, available - this.rightPanelWidth);
+      }
+    }
+  }
+
+  private clampStandaloneWidth(width: number): number {
+    return Math.round(Math.min(Math.max(width, minPanelWidth), maxPanelWidth));
+  }
+
+  private availablePanelWidth(): number {
+    const visibleResizers =
+      (this.leftPanelCollapsed ? 0 : resizerWidth) +
+      (this.rightPanelCollapsed ? 0 : resizerWidth);
+    const hostWidth = this.host.getBoundingClientRect().width || window.innerWidth;
+    return Math.max(minPanelWidth, hostWidth - minViewerWidth - visibleResizers);
+  }
+
   private setCameraMode(mode: CameraMode): void {
     this.cameraMode = mode;
     for (const renderer of this.renderers) {
@@ -342,6 +520,46 @@ export class App {
     for (const renderer of this.renderers) {
       renderer.setDisplayMode(mode);
     }
+  }
+
+  private toggleEntityVisibility(entityId: string): void {
+    if (this.hiddenEntityIds.has(entityId)) {
+      this.hiddenEntityIds.delete(entityId);
+    } else {
+      this.hiddenEntityIds.add(entityId);
+    }
+    this.renderTopologyTree();
+    this.applyHiddenEntitiesToRenderers();
+  }
+
+  private renderTopologyTree(revealEntityId?: string): void {
+    this.topologyTree.render(this.scene, {
+      selectedEntityId: this.selectedEntityId,
+      hiddenEntityIds: this.hiddenEntityIds,
+      effectiveHiddenEntityIds: this.effectiveHiddenEntityIdsForScene(this.scene),
+      revealEntityId
+    });
+  }
+
+  private applyHiddenEntitiesToRenderers(): void {
+    if (this.data.mode === "compare" && this.data.compareScenes?.length) {
+      this.data.compareScenes.forEach((item, index) => {
+        this.renderers[index]?.setHiddenEntities(this.effectiveHiddenEntityIdsForScene(item.scene));
+      });
+      return;
+    }
+    this.renderers[0]?.setHiddenEntities(this.effectiveHiddenEntityIdsForScene(this.scene));
+  }
+
+  private effectiveHiddenEntityIdsForScene(scene: GksScene): Set<string> {
+    const effectiveHidden = new Set<string>();
+    for (const entityId of this.hiddenEntityIds) {
+      effectiveHidden.add(entityId);
+      for (const descendantId of descendantIdsForEntity(scene, entityId)) {
+        effectiveHidden.add(descendantId);
+      }
+    }
+    return effectiveHidden;
   }
 
   private activeScene(): GksScene {
@@ -427,4 +645,39 @@ function isCameraMode(value: string | undefined): value is CameraMode {
 
 function isDisplayMode(value: string | undefined): value is DisplayMode {
   return value === "points" || value === "wireframe" || value === "solid" || value === "all" || value === "xray";
+}
+
+function readStoredNumber(key: string, fallback: number): number {
+  try {
+    const value = window.localStorage.getItem(key);
+    const number = value === null ? Number.NaN : Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function readStoredBoolean(key: string, fallback: boolean): boolean {
+  try {
+    const value = window.localStorage.getItem(key);
+    return value === null ? fallback : value === "true";
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStoredNumber(key: string, value: number): void {
+  try {
+    window.localStorage.setItem(key, String(value));
+  } catch {
+    // Ignore storage failures in restricted webview contexts.
+  }
+}
+
+function writeStoredBoolean(key: string, value: boolean): void {
+  try {
+    window.localStorage.setItem(key, String(value));
+  } catch {
+    // Ignore storage failures in restricted webview contexts.
+  }
 }

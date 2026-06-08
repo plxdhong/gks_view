@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   vscode-extension-package:
@@ -31,8 +31,19 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Require release version bump
+        if: github.event_name == 'push'
+        run: bun scripts/check-vscode-extension-version-bump.mjs "${{ github.event.before }}"
+
       - name: Package VSCode extension
         run: bun run package:vscode
+
+      - name: Read extension version
+        id: extension
+        run: |
+          version=$(bun -e "const fs = require('node:fs'); const pkg = JSON.parse(fs.readFileSync('packages/vscode-extension/package.json', 'utf8')); console.log(pkg.version)")
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=vscode-extension-v${version}" >> "$GITHUB_OUTPUT"
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
@@ -41,3 +52,12 @@ jobs:
           path: build/vsix/*.vsix
           if-no-files-found: error
           retention-days: 30
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.extension.outputs.tag }}" build/vsix/*.vsix \
+            --target "$GITHUB_SHA" \
+            --title "Geometry Kernel Workbench VSCode Extension ${{ steps.extension.outputs.version }}" \
+            --notes "Automated VSCode extension package for ${{ steps.extension.outputs.tag }}."

@@ -1,21 +1,54 @@
 {
   "name": "geometry-kernel-workbench",
   "displayName": "Geometry Kernel Workbench",
-  "description": "Open GKS geometry snapshot files in a VSCode webview workbench.",
-  "version": "0.1.1",
+  "description": "Inspect GKS geometry snapshots with topology trees, properties, compare views, and Three.js rendering.",
+  "version": "0.1.2",
   "publisher": "gk-workbench",
   "license": "UNLICENSED",
+  "icon": "resources/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/plxdhong/gks_view.git",
     "directory": "packages/vscode-extension"
   },
   "homepage": "https://github.com/plxdhong/gks_view#readme",
+  "bugs": {
+    "url": "https://github.com/plxdhong/gks_view/issues"
+  },
+  "qna": false,
+  "preview": true,
+  "extensionKind": [
+    "workspace"
+  ],
+  "keywords": [
+    "geometry",
+    "cad",
+    "topology",
+    "gks",
+    "opencascade",
+    "kernel",
+    "viewer",
+    "gtest",
+    "threejs",
+    "debug"
+  ],
+  "galleryBanner": {
+    "color": "#1f2937",
+    "theme": "dark"
+  },
+  "badges": [
+    {
+      "url": "https://github.com/plxdhong/gks_view/actions/workflows/vscode-extension-ci.yml/badge.svg",
+      "href": "https://github.com/plxdhong/gks_view/actions/workflows/vscode-extension-ci.yml",
+      "description": "VSCode Extension CI"
+    }
+  ],
   "engines": {
     "vscode": "^1.88.0"
   },
   "categories": [
     "Visualization",
+    "Testing",
     "Other"
   ],
   "activationEvents": [

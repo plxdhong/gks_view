@@ -1,0 +1,4 @@
+Copyright (c) 2026 plxdhong.
+
+All rights reserved. This preview extension is provided for internal geometry
+kernel workbench development unless a separate license is granted.
