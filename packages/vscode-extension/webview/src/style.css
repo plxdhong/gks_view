@@ -28,12 +28,22 @@ button {
 }
 
 .workbench-shell {
+  --left-panel-width: 280px;
+  --right-panel-width: 330px;
+  --left-resizer-width: 1px;
+  --right-resizer-width: 1px;
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(230px, 18vw) minmax(360px, 1fr) minmax(260px, 22vw);
+  grid-template-columns:
+    minmax(0, var(--left-panel-width))
+    var(--left-resizer-width)
+    minmax(360px, 1fr)
+    var(--right-resizer-width)
+    minmax(0, var(--right-panel-width));
   grid-template-rows: 48px minmax(0, 1fr);
   grid-template-areas:
-    "toolbar toolbar toolbar"
-    "left viewer right";
+    "toolbar toolbar toolbar toolbar toolbar"
+    "left left-resizer viewer right-resizer right";
   width: 100vw;
   height: 100vh;
   background: #efefea;
@@ -97,6 +107,73 @@ button {
   flex: 0 0 auto;
   color: #565c54;
   font-weight: 700;
+}
+
+.panel-toggle-group {
+  display: inline-flex;
+  height: 30px;
+  overflow: hidden;
+  border: 1px solid #c8ccc4;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.toolbar-icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: 0;
+  border-right: 1px solid #d9dcd5;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: #384036;
+}
+
+.toolbar-icon-button:last-child {
+  border-right: 0;
+}
+
+.toolbar-icon-button:hover {
+  background: #f0f1ed;
+}
+
+.toolbar-icon-button.is-active {
+  background: #2f5f8f;
+  color: #ffffff;
+}
+
+.toolbar-icon-button:focus-visible {
+  outline: 2px solid #d49638;
+  outline-offset: -2px;
+}
+
+.panel-toggle-icon {
+  position: relative;
+  width: 16px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+
+.panel-toggle-icon::before {
+  position: absolute;
+  top: -2px;
+  width: 5px;
+  height: 14px;
+  background: currentColor;
+  content: "";
+}
+
+.panel-toggle-icon-left::before {
+  left: -2px;
+}
+
+.panel-toggle-icon-right::before {
+  right: -2px;
 }
 
 .segmented-control {
@@ -247,6 +324,63 @@ button {
 .right-panel {
   grid-area: right;
   border-left: 1px solid #d7d7cf;
+}
+
+.workbench-shell.is-left-collapsed .left-panel,
+.workbench-shell.is-right-collapsed .right-panel {
+  display: none;
+}
+
+.panel-resizer {
+  z-index: 8;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.panel-resizer::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: transparent;
+  content: "";
+}
+
+.panel-resizer::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  right: -5px;
+  content: "";
+}
+
+.panel-resizer:hover::before,
+.panel-resizer:focus-visible::before,
+.workbench-shell.is-resizing-panel .panel-resizer::before {
+  background: #d49638;
+}
+
+.left-resizer {
+  grid-area: left-resizer;
+}
+
+.right-resizer {
+  grid-area: right-resizer;
+}
+
+.workbench-shell.is-left-collapsed .left-resizer,
+.workbench-shell.is-right-collapsed .right-resizer {
+  display: none;
+}
+
+.workbench-shell.is-resizing-panel,
+.workbench-shell.is-resizing-panel * {
+  user-select: none;
 }
 
 .viewer-panel {
@@ -400,8 +534,10 @@ button {
 
 .timeline-item,
 .tree-item,
+.tree-toggle-button,
+.tree-visibility-button,
+.property-locate-button,
 .annotation {
-  width: 100%;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
@@ -410,20 +546,28 @@ button {
 }
 
 .timeline-item {
+  width: 100%;
   min-height: 30px;
   padding: 5px 8px;
   font-size: 12px;
 }
 
+.annotation {
+  width: 100%;
+}
+
 .timeline-item:hover,
 .tree-item:hover,
+.tree-toggle-button:hover,
+.tree-visibility-button:hover,
+.property-locate-button:hover,
 .annotation:hover {
   border-color: #c8ccc4;
   background: #f0f1ed;
 }
 
 .timeline-item.is-active,
-.tree-item.is-selected {
+.tree-row.is-selected .tree-item {
   border-color: #d49638;
   background: #fff3d8;
 }
@@ -439,8 +583,29 @@ button {
   padding: 6px 6px 10px;
 }
 
-.tree-node {
-  display: contents;
+.tree-node,
+.tree-children {
+  min-width: 0;
+}
+
+.tree-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 3px;
+  padding-left: calc(2px + var(--depth, 0) * 13px);
+}
+
+.tree-row.is-hidden {
+  opacity: 0.46;
+}
+
+.tree-row.is-hidden-by-parent {
+  opacity: 0.34;
+}
+
+.tree-row.is-revealed .tree-item {
+  animation: tree-reveal-pulse 1.1s ease-out;
 }
 
 .tree-item {
@@ -448,18 +613,92 @@ button {
   grid-template-columns: 54px minmax(0, 1fr) auto;
   align-items: center;
   gap: 6px;
+  width: 100%;
   min-height: 28px;
   margin: 2px 0;
-  padding: 3px 6px 3px calc(6px + var(--depth, 0) * 12px);
+  padding: 3px 6px;
   font-size: 12px;
 }
 
+.tree-group-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px;
+  padding-left: calc(2px + var(--depth, 0) * 13px);
+}
+
 .tree-group {
-  padding: 8px 6px 4px calc(6px + var(--depth, 0) * 12px);
+  padding: 8px 6px 4px;
   color: #687065;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.tree-toggle-button,
+.tree-toggle-spacer,
+.tree-visibility-button,
+.property-locate-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 24px;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.tree-toggle-spacer {
+  pointer-events: none;
+}
+
+.tree-toggle-button::before {
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid #5d655b;
+  content: "";
+  transition: transform 120ms ease;
+}
+
+.tree-toggle-button.is-expanded::before {
+  transform: rotate(90deg);
+}
+
+.tree-visibility-button::before {
+  width: 14px;
+  height: 9px;
+  border: 1.7px solid currentColor;
+  border-radius: 50% / 60%;
+  content: "";
+}
+
+.tree-visibility-button::after {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.tree-visibility-button.is-hidden::after {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: #8f2d24;
+  transform: rotate(-38deg);
+}
+
+.tree-visibility-button.is-hidden {
+  color: #8f2d24;
+}
+
+.tree-visibility-button:disabled {
+  cursor: default;
 }
 
 .kind-token {
@@ -498,17 +737,56 @@ button {
   font-size: 11px;
 }
 
+.property-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 10px;
+}
+
+.property-heading {
+  min-width: 0;
+}
+
 .property-title {
-  padding: 12px 12px 2px;
   color: #1f2937;
   font-size: 15px;
   font-weight: 800;
 }
 
 .property-subtitle {
-  padding: 0 12px 10px;
+  margin-top: 2px;
   color: #666d64;
   font-size: 12px;
+}
+
+.property-locate-button {
+  width: 30px;
+  height: 30px;
+  border-color: #d5d8d0;
+  background: #ffffff;
+}
+
+.property-locate-button::before,
+.property-locate-button::after {
+  position: absolute;
+  content: "";
+}
+
+.property-locate-button::before {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.property-locate-button::after {
+  width: 4px;
+  height: 18px;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(90deg);
 }
 
 .property-table {
@@ -574,6 +852,15 @@ button {
   white-space: pre-wrap;
 }
 
+@keyframes tree-reveal-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 150, 56, 0.65);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(212, 150, 56, 0);
+  }
+}
+
 @media (max-width: 1120px) {
   .toolbar-control-label,
   .mode-select-label > span {
@@ -617,6 +904,10 @@ button {
     gap: 4px;
     min-height: 120px;
     padding: 6px 10px;
+  }
+
+  .panel-resizer {
+    display: none;
   }
 
   .brand-block,

@@ -54,6 +54,7 @@ export class SceneRenderer {
   private currentUnit = "m";
   private cameraMode: CameraMode = "perspective";
   private displayMode: DisplayMode = "all";
+  private hiddenEntityIds = new Set<string>();
   private orthographicViewHeight = 2;
   private selectedEntityId: string | undefined;
   private onSelectCallback: SelectCallback | undefined;
@@ -104,9 +105,10 @@ export class SceneRenderer {
     this.onSelectCallback = callback;
   }
 
-  loadScene(scene: GksScene, selectedEntityId?: string): void {
+  loadScene(scene: GksScene, selectedEntityId?: string, hiddenEntityIds: ReadonlySet<string> = new Set<string>()): void {
     this.clear();
     this.selectedEntityId = selectedEntityId;
+    this.hiddenEntityIds = new Set(hiddenEntityIds);
     this.currentUnit = scene.unit ?? "m";
     const highlighted = new Set<string>([
       ...(scene.debug?.highlights?.faces ?? []),
@@ -248,6 +250,11 @@ export class SceneRenderer {
     this.applyDisplayMode();
   }
 
+  setHiddenEntities(hiddenEntityIds: ReadonlySet<string>): void {
+    this.hiddenEntityIds = new Set(hiddenEntityIds);
+    this.applyDisplayMode();
+  }
+
   select(entityId: string | undefined): void {
     this.selectedEntityId = entityId;
     this.applySelection(entityId);
@@ -383,7 +390,8 @@ export class SceneRenderer {
       for (const object of objects) {
         const renderKind = object.userData.renderKind as RenderKind | undefined;
         const material = materialForObject(object);
-        object.visible = this.isRenderKindVisible(renderKind);
+        const entityId = object.userData.entityId as string | undefined;
+        object.visible = this.isRenderKindVisible(renderKind) && !this.hiddenEntityIds.has(entityId ?? "");
 
         if (!material) {
           continue;

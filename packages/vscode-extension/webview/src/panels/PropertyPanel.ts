@@ -1,7 +1,10 @@
 import type { EntityIdentity, GksScene } from "../schema/GksScene";
 
 export class PropertyPanel {
-  constructor(private readonly host: HTMLElement) {}
+  constructor(
+    private readonly host: HTMLElement,
+    private readonly onRevealInTopology: (entityId: string) => void
+  ) {}
 
   render(scene: GksScene, entity: EntityIdentity | undefined): void {
     this.host.replaceChildren();
@@ -10,6 +13,12 @@ export class PropertyPanel {
       return;
     }
 
+    const header = document.createElement("div");
+    header.className = "property-header";
+
+    const titleBlock = document.createElement("div");
+    titleBlock.className = "property-heading";
+
     const title = document.createElement("div");
     title.className = "property-title";
     title.textContent = entity.debugName ?? entity.entityId;
@@ -17,6 +26,16 @@ export class PropertyPanel {
     const subtitle = document.createElement("div");
     subtitle.className = "property-subtitle";
     subtitle.textContent = `${entity.kind} ${entity.kernelTag === undefined ? "" : `#${entity.kernelTag}`}`.trim();
+    titleBlock.append(title, subtitle);
+
+    const locateButton = document.createElement("button");
+    locateButton.type = "button";
+    locateButton.className = "property-locate-button";
+    locateButton.title = "Reveal in topology tree";
+    locateButton.setAttribute("aria-label", `Reveal ${entity.debugName ?? entity.entityId} in topology tree`);
+    locateButton.addEventListener("click", () => this.onRevealInTopology(entity.entityId));
+
+    header.append(titleBlock, locateButton);
 
     const table = document.createElement("div");
     table.className = "property-table";
@@ -29,7 +48,7 @@ export class PropertyPanel {
       appendRows(table, groupValue as Record<string, unknown>);
     }
 
-    this.host.append(title, subtitle, table);
+    this.host.append(header, table);
   }
 }
 
@@ -73,4 +92,3 @@ function emptyState(text: string): HTMLElement {
   element.textContent = text;
   return element;
 }
-
