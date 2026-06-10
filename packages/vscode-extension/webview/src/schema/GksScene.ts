@@ -12,6 +12,7 @@ export type { EntityIdentity, EntityKind, GksCase, GksCompare, GksCompareSceneRe
 export interface WorkbenchInitialData {
   mode: "case" | "scene" | "compare" | "adapter";
   case?: GksCase;
+  caseBasePath?: string;
   compare?: GksCompare;
   snapshots: WorkbenchSnapshotItem[];
   activeSnapshotId: string;

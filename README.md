@@ -58,8 +58,10 @@ GitHub Actions build the extension on pushes to `main` and pull requests to
 
 The `release` branch is the packaging branch. Pull requests targeting
 `release` must increase `packages/vscode-extension/package.json`'s `version`
-field. After a change lands on `release`, GitHub Actions packages a VSIX and
-uploads it as a workflow artifact.
+field and add detailed notes for the same version in
+`packages/vscode-extension/CHANGELOG.md`. After a change lands on `release`,
+GitHub Actions packages a VSIX, uploads it as a workflow artifact, and creates a
+GitHub Release whose notes are read from that changelog version section.
 
 Local packaging uses the same command:
 

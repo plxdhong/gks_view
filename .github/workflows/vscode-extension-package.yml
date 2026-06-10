@@ -47,6 +47,9 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "tag=vscode-extension-v${version}" >> "$GITHUB_OUTPUT"
 
+      - name: Read release notes
+        run: bun scripts/read-vscode-release-notes.mjs "${{ steps.extension.outputs.version }}" > release-notes.md
+
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
@@ -62,4 +65,4 @@ jobs:
           gh release create "${{ steps.extension.outputs.tag }}" build/vsix/*.vsix \
             --target "$GITHUB_SHA" \
             --title "Geometry Kernel Workbench VSCode Extension ${{ steps.extension.outputs.version }}" \
-            --notes "Automated VSCode extension package for ${{ steps.extension.outputs.tag }}."
+            --notes-file release-notes.md
