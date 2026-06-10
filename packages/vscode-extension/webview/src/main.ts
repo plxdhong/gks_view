@@ -38,6 +38,7 @@ async function loadCaseFromExamples(casePath: string): Promise<WorkbenchInitialD
   return {
     mode: "case",
     case: gkcase,
+    caseBasePath: dirname(safeCasePath),
     snapshots: gkcase.snapshots,
     activeSnapshotId: firstSnapshot.snapshotId,
     scene

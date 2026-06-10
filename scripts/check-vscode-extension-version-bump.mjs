@@ -25,7 +25,14 @@ if (comparison <= 0) {
   process.exit(1);
 }
 
+const releaseNotes = readReleaseNotes(currentVersion);
+if (!releaseNotes) {
+  console.error(`Missing release notes section in packages/vscode-extension/CHANGELOG.md for ${currentVersion}`);
+  process.exit(1);
+}
+
 console.log(`VSCode extension version bump accepted: ${baseVersion} -> ${currentVersion}`);
+console.log(`VSCode extension release notes found for ${currentVersion}`);
 
 function readBasePackageJson(ref) {
   const result = spawnSync("git", ["show", `${ref}:${packagePath}`], {
@@ -106,4 +113,27 @@ function comparePrerelease(current, base) {
     return currentPart.localeCompare(basePart);
   }
   return 0;
+}
+
+function readReleaseNotes(version) {
+  const changelog = readFileSync(resolve("packages/vscode-extension/CHANGELOG.md"), "utf8");
+  const lines = changelog.split(/\r?\n/);
+  let collecting = false;
+  const section = [];
+
+  for (const line of lines) {
+    if (/^##\s+/.test(line)) {
+      if (collecting) {
+        break;
+      }
+      collecting = line.replace(/^##\s+/, "").trim() === version;
+      continue;
+    }
+    if (collecting) {
+      section.push(line);
+    }
+  }
+
+  const notes = section.join("\n").trim();
+  return notes.includes("- ") ? notes : "";
 }

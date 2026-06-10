@@ -1,5 +1,5 @@
 import type { EntityIdentity, GksScene } from "../schema/GksScene";
-import { ancestorIdsForEntity, childrenForEntity } from "../schema/GksScene";
+import { ancestorIdsForEntity, buildEntityParentIndex, childrenForEntity } from "../schema/GksScene";
 
 type SelectHandler = (entityId: string) => void;
 type VisibilityHandler = (entityId: string) => void;
@@ -42,10 +42,9 @@ export class TopologyTreePanel {
       list.append(this.renderNode(scene, body, state, 0));
     }
 
-    const freeEdges = scene.topology.edges.filter((edge) => !edge.adjacentFaces?.length);
-    const vertices = scene.topology.vertices;
-    if (freeEdges.length || vertices.length) {
-      list.append(this.renderGroup("Loose Entities", "loose", [...freeEdges, ...vertices], state, 0));
+    const looseEntities = this.looseEntities(scene);
+    if (looseEntities.length) {
+      list.append(this.renderGroup("Loose Entities", "loose", looseEntities, state, 0));
     }
     this.host.append(list);
 
@@ -247,6 +246,20 @@ export class TopologyTreePanel {
       }
     }
     return result;
+  }
+
+  private looseEntities(scene: GksScene): EntityIdentity[] {
+    const parents = buildEntityParentIndex(scene);
+    const candidates = [
+      ...scene.topology.regions,
+      ...scene.topology.shells,
+      ...scene.topology.faces,
+      ...scene.topology.loops,
+      ...scene.topology.coedges,
+      ...scene.topology.edges,
+      ...scene.topology.vertices
+    ];
+    return candidates.filter((entity) => !parents.has(entity.entityId));
   }
 
   private lastScene: GksScene | undefined;

@@ -258,7 +258,10 @@ export class App {
     if (!snapshot?.file) {
       return;
     }
-    fetch(`/mock/HoleGrow.Case_001/${snapshot.file}`)
+    const snapshotPath = this.data.caseBasePath === undefined || this.data.caseBasePath.length === 0
+      ? snapshot.file
+      : `${this.data.caseBasePath}/${snapshot.file}`;
+    fetch(`/${snapshotPath}`)
       .then((response) => response.json())
       .then((scene: GksScene) => {
         this.scene = scene;

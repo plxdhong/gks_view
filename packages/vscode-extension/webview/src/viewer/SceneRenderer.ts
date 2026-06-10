@@ -14,6 +14,9 @@ export type DisplayMode = "points" | "wireframe" | "solid" | "all" | "xray";
 type SelectCallback = (selection: PickedEntity) => void;
 type RenderKind = "solid" | "wireframe" | "point";
 type WorkbenchCamera = THREE.PerspectiveCamera | THREE.OrthographicCamera;
+type LoadSceneOptions = {
+  resetCamera?: boolean;
+};
 type ColorMaterial = THREE.Material & {
   color?: THREE.Color;
   opacity: number;
@@ -44,6 +47,7 @@ export class SceneRenderer {
   private readonly pointer = new THREE.Vector2();
   private readonly selectable: THREE.Object3D[] = [];
   private readonly entityObjects = new Map<string, THREE.Object3D[]>();
+  private readonly vertexPointObjects: THREE.Mesh[] = [];
   private readonly root = new THREE.Group();
   private readonly scaleBar = document.createElement("div");
   private readonly scaleBarLine = document.createElement("div");
@@ -56,6 +60,8 @@ export class SceneRenderer {
   private displayMode: DisplayMode = "all";
   private hiddenEntityIds = new Set<string>();
   private orthographicViewHeight = 2;
+  private originAxes: THREE.Group | undefined;
+  private hasLoadedScene = false;
   private selectedEntityId: string | undefined;
   private onSelectCallback: SelectCallback | undefined;
   private resizeObserver: ResizeObserver | undefined;
@@ -105,7 +111,13 @@ export class SceneRenderer {
     this.onSelectCallback = callback;
   }
 
-  loadScene(scene: GksScene, selectedEntityId?: string, hiddenEntityIds: ReadonlySet<string> = new Set<string>()): void {
+  loadScene(
+    scene: GksScene,
+    selectedEntityId?: string,
+    hiddenEntityIds: ReadonlySet<string> = new Set<string>(),
+    options: LoadSceneOptions = {}
+  ): void {
+    const shouldResetCamera = options.resetCamera ?? !this.hasLoadedScene;
     this.clear();
     this.selectedEntityId = selectedEntityId;
     this.hiddenEntityIds = new Set(hiddenEntityIds);
@@ -156,7 +168,7 @@ export class SceneRenderer {
       this.addEntityObject(polyline.entityId, line, "wireframe");
     }
 
-    const vertexGeometry = new THREE.SphereGeometry(0.035, 12, 8);
+    const vertexGeometry = new THREE.SphereGeometry(1, 12, 8);
     for (const point of scene.geometry.vertexPoints) {
       if (point.display?.visible === false) {
         continue;
@@ -168,17 +180,28 @@ export class SceneRenderer {
       });
       const sphere = new THREE.Mesh(vertexGeometry.clone(), material);
       sphere.position.set(point.position[0], point.position[1], point.position[2]);
+      this.vertexPointObjects.push(sphere);
       this.addEntityObject(point.entityId, sphere, "point");
     }
+    vertexGeometry.dispose();
 
     this.addTransientObjects(scene);
-    this.addOriginAxes(scene);
+    this.addOriginAxes();
     this.sceneBounds.copy(boundsForDiscreteGeometry(scene));
     this.defaultViewDirection.copy(defaultViewDirectionForScene(scene));
     this.defaultCameraUp.copy(defaultCameraUpForScene(scene));
     this.applySelection(selectedEntityId);
     this.applyDisplayMode();
-    this.resetView();
+    if (shouldResetCamera) {
+      this.resetView();
+    } else {
+      this.updateOrthographicFrame();
+      this.updateClippingForCurrentView();
+      this.controls.handleResize();
+      this.controls.update();
+    }
+    this.hasLoadedScene = true;
+    this.updateViewDependentDecorations();
     this.updateScaleBar();
   }
 
@@ -188,8 +211,7 @@ export class SceneRenderer {
       new THREE.Vector3(1, 1, 1)
     ) : this.sceneBounds;
     const center = bounds.getCenter(new THREE.Vector3());
-    const size = bounds.getSize(new THREE.Vector3());
-    const radius = Math.max(size.length() / 2, 0.1);
+    const radius = radiusForBounds(bounds, 1);
     const fitFraction = 0.75;
     const viewDirection = this.defaultViewDirection.clone().normalize();
     const distance = this.cameraMode === "perspective"
@@ -202,6 +224,7 @@ export class SceneRenderer {
     this.updateCameraClipping(this.activeCamera, distance, radius);
     this.controls.handleResize();
     this.controls.update();
+    this.updateViewDependentDecorations();
     this.updateScaleBar();
   }
 
@@ -227,10 +250,10 @@ export class SceneRenderer {
     const radius = this.sceneRadius();
     const distance = mode === "perspective"
       ? this.distanceForPerspectiveVisibleHeight(currentVisibleHeight)
-      : Math.max(previousCamera.position.distanceTo(target), radius * 4, 1);
+      : Math.max(previousCamera.position.distanceTo(target), radius * 4, 1e-6);
 
     if (mode === "orthographic") {
-      this.orthographicViewHeight = Math.max(currentVisibleHeight, radius * 2, 0.1);
+      this.orthographicViewHeight = Math.max(currentVisibleHeight, radius * 2, 1e-9);
       this.orthographicCamera.zoom = 1;
       this.updateOrthographicFrame();
     }
@@ -239,6 +262,7 @@ export class SceneRenderer {
     this.updateCameraClipping(this.activeCamera, distance, radius);
     this.controls.handleResize();
     this.controls.update();
+    this.updateViewDependentDecorations();
     this.updateScaleBar();
   }
 
@@ -300,31 +324,24 @@ export class SceneRenderer {
     }
   }
 
-  private addOriginAxes(scene: GksScene): void {
-    const length = axisLengthForScene(scene);
-    const shaftRadius = length * 0.008;
-    const arrowRadius = length * 0.035;
-    const arrowLength = length * 0.14;
+  private addOriginAxes(): void {
     const group = new THREE.Group();
     group.name = "origin-axes";
 
-    group.add(this.createAxis("x", new THREE.Vector3(1, 0, 0), length, shaftRadius, arrowRadius, arrowLength));
-    group.add(this.createAxis("y", new THREE.Vector3(0, 1, 0), length, shaftRadius, arrowRadius, arrowLength));
-    group.add(this.createAxis("z", new THREE.Vector3(0, 0, 1), length, shaftRadius, arrowRadius, arrowLength));
-    group.add(this.createAxisLabel("X", axisColors.x, new THREE.Vector3(length * 1.12, 0, 0), length));
-    group.add(this.createAxisLabel("Y", axisColors.y, new THREE.Vector3(0, length * 1.12, 0), length));
-    group.add(this.createAxisLabel("Z", axisColors.z, new THREE.Vector3(0, 0, length * 1.12), length));
+    group.add(this.createAxis("x", new THREE.Vector3(1, 0, 0)));
+    group.add(this.createAxis("y", new THREE.Vector3(0, 1, 0)));
+    group.add(this.createAxis("z", new THREE.Vector3(0, 0, 1)));
+    group.add(this.createAxisLabel("X", axisColors.x, new THREE.Vector3(1.12, 0, 0)));
+    group.add(this.createAxisLabel("Y", axisColors.y, new THREE.Vector3(0, 1.12, 0)));
+    group.add(this.createAxisLabel("Z", axisColors.z, new THREE.Vector3(0, 0, 1.12)));
 
+    this.originAxes = group;
     this.root.add(group);
   }
 
   private createAxis(
     axis: "x" | "y" | "z",
-    direction: THREE.Vector3,
-    length: number,
-    shaftRadius: number,
-    arrowRadius: number,
-    arrowLength: number
+    direction: THREE.Vector3
   ): THREE.Group {
     const group = new THREE.Group();
     const color = axisColors[axis];
@@ -333,6 +350,10 @@ export class SceneRenderer {
       depthTest: false,
       depthWrite: false
     });
+    const length = 1;
+    const shaftRadius = 0.008;
+    const arrowRadius = 0.035;
+    const arrowLength = 0.14;
     const shaft = new THREE.Mesh(new THREE.CylinderGeometry(shaftRadius, shaftRadius, length - arrowLength, 12), material);
     const arrow = new THREE.Mesh(new THREE.ConeGeometry(arrowRadius, arrowLength, 18), material);
 
@@ -345,7 +366,7 @@ export class SceneRenderer {
     return group;
   }
 
-  private createAxisLabel(label: string, color: THREE.Color, position: THREE.Vector3, axisLength: number): THREE.Sprite {
+  private createAxisLabel(label: string, color: THREE.Color, position: THREE.Vector3): THREE.Sprite {
     const canvas = document.createElement("canvas");
     canvas.width = 96;
     canvas.height = 96;
@@ -366,7 +387,7 @@ export class SceneRenderer {
     });
     const sprite = new THREE.Sprite(material);
     sprite.position.copy(position);
-    const size = axisLength * 0.18;
+    const size = 0.18;
     sprite.scale.set(size, size, size);
     return sprite;
   }
@@ -449,6 +470,8 @@ export class SceneRenderer {
     }
     this.selectable.length = 0;
     this.entityObjects.clear();
+    this.vertexPointObjects.length = 0;
+    this.originAxes = undefined;
   }
 
   private resize(): void {
@@ -460,33 +483,47 @@ export class SceneRenderer {
     this.updateOrthographicFrame(width, height);
     this.renderer.setSize(width, height, false);
     this.controls.handleResize();
+    this.updateViewDependentDecorations();
     this.updateScaleBar();
   }
 
   private animate = (): void => {
     requestAnimationFrame(this.animate);
     this.controls.update();
+    this.updateViewDependentDecorations();
     this.updateScaleBar();
     this.renderer.render(this.scene, this.activeCamera);
   };
 
   private updateScaleBar(): void {
-    const height = this.renderer.domElement.clientHeight;
-    if (height <= 0) {
+    const worldPerPixel = this.worldUnitsPerPixel();
+    if (!worldPerPixel) {
       return;
     }
-
-    const visibleHeight = this.visibleWorldHeight();
-    if (!Number.isFinite(visibleHeight) || visibleHeight <= 0) {
-      return;
-    }
-    const worldPerPixel = visibleHeight / height;
     const targetPixels = 120;
     const worldLength = niceScaleLength(worldPerPixel * targetPixels);
     const pixelLength = Math.max(42, Math.min(220, worldLength / worldPerPixel));
 
     this.scaleBarLine.style.width = `${pixelLength}px`;
     this.scaleBarLabel.textContent = `${formatScaleValue(worldLength)} ${this.currentUnit}`;
+  }
+
+  private updateViewDependentDecorations(): void {
+    const worldPerPixel = this.worldUnitsPerPixel();
+    const visibleHeight = this.visibleWorldHeight();
+    if (!worldPerPixel || !Number.isFinite(visibleHeight) || visibleHeight <= 0) {
+      return;
+    }
+
+    const pointRadius = worldPerPixel * 4.5;
+    for (const point of this.vertexPointObjects) {
+      point.scale.setScalar(pointRadius);
+    }
+
+    const axisLength = visibleHeight * 0.16;
+    this.originAxes?.scale.setScalar(axisLength);
+    this.raycaster.params.Line = { threshold: worldPerPixel * 6 };
+    this.raycaster.params.Points = { threshold: worldPerPixel * 8 };
   }
 
   private handlePointerDown = (event: PointerEvent): void => {
@@ -525,7 +562,7 @@ export class SceneRenderer {
     this.orthographicViewHeight = diameter / fitFraction / Math.min(aspect, 1);
     this.orthographicCamera.zoom = 1;
     this.updateOrthographicFrame();
-    const distance = Math.max(radius * 4, 1);
+    const distance = Math.max(radius * 4, 1e-6);
     this.activeCamera = this.orthographicCamera;
     this.controls.object = this.activeCamera;
     this.orthographicCamera.position.copy(center).addScaledVector(this.defaultViewDirection, distance);
@@ -547,10 +584,22 @@ export class SceneRenderer {
   }
 
   private updateCameraClipping(camera: WorkbenchCamera, distance: number, radius: number): void {
-    const nearFarPadding = Math.max(radius * 8, distance * 2, 10);
-    camera.near = Math.max(distance - nearFarPadding, 0.001);
-    camera.far = distance + nearFarPadding;
+    const nearFarPadding = Math.max(radius * 8, distance * 2, 1e-9);
+    const minimumNear = Math.max(radius * 1e-4, 1e-12);
+    camera.near = Math.max(distance - nearFarPadding, minimumNear);
+    camera.far = Math.max(distance + nearFarPadding, camera.near * 10);
     camera.updateProjectionMatrix();
+  }
+
+  private updateClippingForCurrentView(): void {
+    const bounds = this.sceneBounds.isEmpty() ? new THREE.Box3(
+      new THREE.Vector3(-1, -1, -1),
+      new THREE.Vector3(1, 1, 1)
+    ) : this.sceneBounds;
+    const center = bounds.getCenter(new THREE.Vector3());
+    const radius = radiusForBounds(bounds, 1);
+    const distance = this.activeCamera.position.distanceTo(center);
+    this.updateCameraClipping(this.activeCamera, distance, radius);
   }
 
   private visibleWorldHeight(): number {
@@ -573,13 +622,25 @@ export class SceneRenderer {
       new THREE.Vector3(-1, -1, -1),
       new THREE.Vector3(1, 1, 1)
     ) : this.sceneBounds;
-    return Math.max(bounds.getSize(new THREE.Vector3()).length() / 2, 0.1);
+    return radiusForBounds(bounds, 1);
   }
 
   private cameraAspect(): number {
     const height = Math.max(1, this.renderer.domElement.clientHeight);
     const width = Math.max(1, this.renderer.domElement.clientWidth);
     return width / height;
+  }
+
+  private worldUnitsPerPixel(): number | undefined {
+    const height = this.renderer.domElement.clientHeight;
+    if (height <= 0) {
+      return undefined;
+    }
+    const visibleHeight = this.visibleWorldHeight();
+    if (!Number.isFinite(visibleHeight) || visibleHeight <= 0) {
+      return undefined;
+    }
+    return visibleHeight / height;
   }
 }
 
@@ -601,17 +662,6 @@ function entityIdForHitObject(object: THREE.Object3D | undefined): string | unde
     current = current.parent ?? undefined;
   }
   return undefined;
-}
-
-function axisLengthForScene(scene: GksScene): number {
-  const bbox = scene.bbox;
-  if (!bbox) {
-    return 1;
-  }
-  const dx = Math.abs(bbox.max[0] - bbox.min[0]);
-  const dy = Math.abs(bbox.max[1] - bbox.min[1]);
-  const dz = Math.abs(bbox.max[2] - bbox.min[2]);
-  return niceScaleLength(Math.max(dx, dy, dz, 1) * 0.45);
 }
 
 function boundsForDiscreteGeometry(scene: GksScene): THREE.Box3 {
@@ -642,6 +692,14 @@ function boundsForDiscreteGeometry(scene: GksScene): THREE.Box3 {
     box.max.set(scene.bbox.max[0], scene.bbox.max[1], scene.bbox.max[2]);
   }
   return box;
+}
+
+function radiusForBounds(bounds: THREE.Box3, fallback: number): number {
+  if (bounds.isEmpty()) {
+    return fallback;
+  }
+  const radius = bounds.getSize(new THREE.Vector3()).length() / 2;
+  return Number.isFinite(radius) && radius > 0 ? radius : fallback;
 }
 
 function expandBoxByFlatPoints(box: THREE.Box3, values: number[]): void {
