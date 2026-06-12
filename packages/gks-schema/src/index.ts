@@ -43,6 +43,26 @@ export interface GksCase {
   snapshots: GksSnapshotRef[];
 }
 
+export interface GksRun {
+  gksVersion: "0.1";
+  runId: string;
+  title?: string;
+  createdAt?: string;
+  rootDir?: string;
+  cases: GksRunCaseRef[];
+}
+
+export interface GksRunCaseRef {
+  caseId: string;
+  title?: string;
+  file: string;
+  suite?: string;
+  test?: string;
+  status?: "running" | "passed" | "failed" | "skipped" | "unknown";
+  startedAt?: string;
+  finishedAt?: string;
+}
+
 export interface GksSnapshotRef {
   snapshotId: string;
   title?: string;
@@ -266,8 +286,19 @@ export interface GksDebug {
     edges?: string[];
     vertices?: string[];
   };
+  highlightGroups?: GksHighlightGroup[];
   annotations?: GksAnnotation[];
   algorithmData?: Record<string, unknown>;
+}
+
+export interface GksHighlightGroup {
+  groupId?: string;
+  title?: string;
+  color?: string;
+  faces?: string[];
+  edges?: string[];
+  vertices?: string[];
+  entityIds?: string[];
 }
 
 export interface GksAnnotation {
@@ -421,6 +452,7 @@ export interface CommandExecuteResult {
     edges?: string[];
     vertices?: string[];
   };
+  highlightGroups?: GksHighlightGroup[];
   data?: Record<string, unknown>;
   transientObjects?: TransientObject[];
 }

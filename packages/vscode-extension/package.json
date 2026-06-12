@@ -55,7 +55,9 @@
     "onCustomEditor:gkWorkbench.gkcase",
     "onCustomEditor:gkWorkbench.gkscene",
     "onCustomEditor:gkWorkbench.gkcompare",
+    "onCustomEditor:gkWorkbench.gkrun",
     "onCommand:gkWorkbench.openSnapshot",
+    "onCommand:gkWorkbench.openLatestRun",
     "onCommand:gkWorkbench.revealEntity"
   ],
   "main": "./dist/extension.js",
@@ -64,6 +66,10 @@
       {
         "command": "gkWorkbench.openSnapshot",
         "title": "Geometry: Open Snapshot"
+      },
+      {
+        "command": "gkWorkbench.openLatestRun",
+        "title": "Geometry: Open Latest Test Run"
       },
       {
         "command": "gkWorkbench.openCompare",
@@ -109,6 +115,16 @@
         "selector": [
           {
             "filenamePattern": "*.gkcompare.json"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "gkWorkbench.gkrun",
+        "displayName": "Geometry Workbench Run",
+        "selector": [
+          {
+            "filenamePattern": "*.gkrun.json"
           }
         ],
         "priority": "default"

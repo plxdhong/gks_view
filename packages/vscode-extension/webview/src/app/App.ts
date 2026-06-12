@@ -1,4 +1,4 @@
-import type { EntityIdentity, GksScene, WorkbenchInitialData } from "../schema/GksScene";
+import type { EntityIdentity, GksScene, WorkbenchInitialData, WorkbenchRunSceneResult } from "../schema/GksScene";
 import { buildEntityIndex, descendantIdsForEntity } from "../schema/GksScene";
 import { PropertyPanel } from "../panels/PropertyPanel";
 import { SnapshotTimeline } from "../panels/SnapshotTimeline";
@@ -68,6 +68,9 @@ export class App {
               <option value="xray">Translucent</option>
             </select>
           </label>
+          <button class="toolbar-icon-button control-help-button" type="button" title="Operation guide" aria-label="Operation guide" aria-expanded="false">
+            <span class="help-icon" aria-hidden="true">?</span>
+          </button>
           <button class="view-reset-button" type="button" title="Reset view" aria-label="Reset view">
             <span class="view-reset-icon" aria-hidden="true"></span>
             <span>Reset View</span>
@@ -86,7 +89,21 @@ export class App {
           </label>
         </div>
       </header>
+      <div class="help-popover" hidden>
+        <div class="help-popover-title">操作图例</div>
+        <div class="help-grid">
+          <span>左键拖动</span><span>旋转视图</span>
+          <span>右键拖动</span><span>平移视图</span>
+          <span>滚轮</span><span>缩放视图</span>
+          <span>点击实体</span><span>选择并设置旋转中心</span>
+          <span>点击空白</span><span>取消选择</span>
+        </div>
+      </div>
       <aside class="left-panel">
+        <section class="panel run-case-panel">
+          <h2>Cases</h2>
+          <div class="run-case-list"></div>
+        </section>
         <section class="panel timeline-panel">
           <h2>Snapshots</h2>
           <div class="timeline-list"></div>
@@ -128,6 +145,7 @@ export class App {
     );
 
     this.setupToolbarControls();
+    this.setupHelpControls();
     this.setupPanelControls();
     this.mustQuery<HTMLInputElement>(".entity-search").addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
@@ -144,6 +162,7 @@ export class App {
     this.entityIndex = buildEntityIndex(this.scene);
     const selected = this.selectedEntityId ? this.entityIndex.get(this.selectedEntityId) : undefined;
     this.mustQuery(".brand-meta").textContent = this.titleText();
+    this.renderRunCases();
     this.timeline.render(this.data.snapshots, this.data.activeSnapshotId);
     this.renderTopologyTree();
     this.propertyPanel.render(this.scene, selected);
@@ -164,7 +183,8 @@ export class App {
       ["step", debug.step],
       ["message", debug.message],
       ["faces", debug.highlights?.faces?.join(", ")],
-      ["edges", debug.highlights?.edges?.join(", ")]
+      ["edges", debug.highlights?.edges?.join(", ")],
+      ["groups", debug.highlightGroups?.length ? String(debug.highlightGroups.length) : undefined]
     ].filter(([, value]) => value);
 
     const table = document.createElement("div");
@@ -180,6 +200,25 @@ export class App {
     }
     host.append(table);
 
+    for (const group of debug.highlightGroups ?? []) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "highlight-group";
+      item.style.setProperty("--highlight-group-color", group.color ?? "#d9a441");
+      item.textContent = group.title ?? group.groupId ?? "Highlight group";
+      item.title = [
+        ...(group.faces ?? []),
+        ...(group.edges ?? []),
+        ...(group.vertices ?? []),
+        ...(group.entityIds ?? [])
+      ].join(", ");
+      item.addEventListener("click", () => {
+        const firstEntityId = group.entityIds?.[0] ?? group.faces?.[0] ?? group.edges?.[0] ?? group.vertices?.[0];
+        this.selectEntity(firstEntityId, true);
+      });
+      host.append(item);
+    }
+
     for (const annotation of debug.annotations ?? []) {
       const item = document.createElement("button");
       item.type = "button";
@@ -193,6 +232,10 @@ export class App {
 
   private selectEntity(entityId: string | undefined, focus: boolean, options: { revealInTree?: boolean } = {}): void {
     if (!entityId) {
+      this.clearSelection();
+      return;
+    }
+    if (!this.entityIndex.has(entityId)) {
       return;
     }
     const revealInTree = options.revealInTree ?? true;
@@ -204,6 +247,13 @@ export class App {
     this.renderTopologyTree(revealInTree ? entityId : undefined);
     this.propertyPanel.render(this.scene, this.entityIndex.get(entityId));
     this.requestEntityProperties(entityId);
+  }
+
+  private clearSelection(): void {
+    this.selectedEntityId = undefined;
+    this.selectAcrossRenderers(undefined);
+    this.renderTopologyTree();
+    this.propertyPanel.render(this.scene, undefined);
   }
 
   private revealInTopology(entityId: string): void {
@@ -233,6 +283,37 @@ export class App {
     }
     this.data.activeSnapshotId = snapshotId;
     this.selectedEntityId = undefined;
+
+    if (this.data.mode === "run") {
+      const activeRunCase = this.activeRunCase();
+      if (!activeRunCase) {
+        return;
+      }
+      activeRunCase.activeSnapshotId = snapshotId;
+      this.data.snapshots = activeRunCase.snapshots;
+      if (this.vscode) {
+        const requestId = `request-${Date.now()}`;
+        this.vscode.postMessage({
+          type: "requestScene",
+          requestId,
+          payload: { caseId: activeRunCase.caseId, snapshotId }
+        });
+        return;
+      }
+      const snapshot = activeRunCase.snapshots.find((item) => item.snapshotId === snapshotId);
+      if (!snapshot?.file) {
+        return;
+      }
+      fetch(`/${activeRunCase.caseBasePath}/${snapshot.file}`)
+        .then((response) => response.json())
+        .then((scene: GksScene) => {
+          activeRunCase.scene = scene;
+          this.scene = scene;
+          this.renderAll();
+        })
+        .catch((error) => this.showError(String(error)));
+      return;
+    }
 
     if (this.data.mode === "compare") {
       const index = this.data.compareScenes?.findIndex((item) => item.viewId === snapshotId) ?? -1;
@@ -270,14 +351,125 @@ export class App {
       .catch((error) => this.showError(String(error)));
   }
 
+  private renderRunCases(): void {
+    const panel = this.mustQuery<HTMLElement>(".run-case-panel");
+    const host = this.mustQuery(".run-case-list");
+    host.replaceChildren();
+    if (this.data.mode !== "run" || !this.data.runCases?.length) {
+      panel.hidden = true;
+      return;
+    }
+    panel.hidden = false;
+
+    for (const runCase of this.data.runCases) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "run-case-item";
+      item.classList.toggle("is-active", runCase.caseId === this.data.activeRunCaseId);
+      item.dataset.status = runCase.status ?? "unknown";
+      item.title = runCase.caseId;
+
+      const title = document.createElement("span");
+      title.className = "run-case-title";
+      title.textContent = runCase.title ?? runCase.case.title ?? runCase.caseId;
+      const meta = document.createElement("span");
+      meta.className = "run-case-meta";
+      meta.textContent = [runCase.suite, runCase.test, runCase.status].filter(Boolean).join(" / ");
+      item.append(title, meta);
+      item.addEventListener("click", () => this.activateRunCase(runCase.caseId));
+      host.append(item);
+    }
+  }
+
+  private activateRunCase(caseId: string, requestScene = true): void {
+    if (this.data.mode !== "run") {
+      return;
+    }
+    const runCase = this.data.runCases?.find((item) => item.caseId === caseId);
+    if (!runCase) {
+      return;
+    }
+
+    this.data.activeRunCaseId = runCase.caseId;
+    this.data.case = runCase.case;
+    this.data.caseBasePath = runCase.caseBasePath;
+    this.data.snapshots = runCase.snapshots;
+    this.data.activeSnapshotId = runCase.activeSnapshotId;
+    this.scene = runCase.scene;
+    this.selectedEntityId = undefined;
+    this.renderAll();
+
+    if (requestScene && this.vscode) {
+      this.vscode.postMessage({
+        type: "requestScene",
+        requestId: `request-${Date.now()}`,
+        payload: {
+          caseId: runCase.caseId,
+          snapshotId: runCase.activeSnapshotId
+        }
+      });
+    }
+  }
+
+  private applyRunSceneResult(result: WorkbenchRunSceneResult): void {
+    if (this.data.mode !== "run") {
+      return;
+    }
+    const runCase = this.data.runCases?.find((item) => item.caseId === result.activeRunCaseId);
+    if (runCase) {
+      runCase.case = result.case;
+      runCase.caseBasePath = result.caseBasePath;
+      runCase.snapshots = result.snapshots;
+      runCase.activeSnapshotId = result.activeSnapshotId;
+      runCase.scene = result.scene;
+    }
+    this.data.activeRunCaseId = result.activeRunCaseId;
+    this.data.case = result.case;
+    this.data.caseBasePath = result.caseBasePath;
+    this.data.snapshots = result.snapshots;
+    this.data.activeSnapshotId = result.activeSnapshotId;
+    this.scene = result.scene;
+    this.renderAll();
+  }
+
+  private applyRunUpdate(data: WorkbenchInitialData): void {
+    const previousRunCaseId = this.data.activeRunCaseId;
+    this.data = data;
+    this.selectedEntityId = undefined;
+    const nextCaseId = previousRunCaseId && data.runCases?.some((item) => item.caseId === previousRunCaseId)
+      ? previousRunCaseId
+      : data.activeRunCaseId;
+    if (nextCaseId) {
+      this.activateRunCase(nextCaseId, false);
+      return;
+    }
+    this.scene = data.scene;
+    this.renderAll();
+  }
+
   private handleMessage(message: unknown): void {
     if (!message || typeof message !== "object") {
       return;
     }
-    const typed = message as { type?: string; payload?: { scene?: GksScene; message?: string; entityId?: string; properties?: Record<string, unknown> } };
+    const typed = message as {
+      type?: string;
+      payload?: {
+        data?: WorkbenchInitialData;
+        scene?: GksScene;
+        message?: string;
+        entityId?: string;
+        properties?: Record<string, unknown>;
+      } & Partial<WorkbenchRunSceneResult>;
+    };
     if (typed.type === "sceneLoaded" && typed.payload?.scene) {
       this.scene = typed.payload.scene;
       this.renderAll();
+    }
+    if (typed.type === "runSceneLoaded" && typed.payload?.scene) {
+      this.applyRunSceneResult(typed.payload as WorkbenchRunSceneResult);
+    }
+    if (typed.type === "runUpdated" && typed.payload?.data) {
+      this.applyRunUpdate(typed.payload.data);
     }
     if (typed.type === "revealEntity") {
       const query = (typed.payload as { query?: string } | undefined)?.query;
@@ -323,7 +515,7 @@ export class App {
           this.data.activeSnapshotId = item.viewId;
           this.scene = item.scene;
           this.entityIndex = buildEntityIndex(this.scene);
-          this.selectEntity(selection.entityId, false);
+          this.selectEntity(selection?.entityId, false);
           this.timeline.render(this.data.snapshots, this.data.activeSnapshotId);
           this.markActiveCompareFrame();
         });
@@ -338,7 +530,7 @@ export class App {
     host.className = "viewer-host";
     layout.append(host);
     const renderer = new SceneRenderer(host);
-    renderer.onSelect((selection) => this.selectEntity(selection.entityId, false));
+    renderer.onSelect((selection) => this.selectEntity(selection?.entityId, false));
     this.renderers.push(renderer);
   }
 
@@ -367,6 +559,22 @@ export class App {
       const mode = (event.currentTarget as HTMLSelectElement).value;
       if (isDisplayMode(mode)) {
         this.setDisplayMode(mode);
+      }
+    });
+  }
+
+  private setupHelpControls(): void {
+    const button = this.mustQuery<HTMLButtonElement>(".control-help-button");
+    const popover = this.mustQuery<HTMLElement>(".help-popover");
+    button.addEventListener("click", () => {
+      const isOpen = !popover.hidden;
+      popover.hidden = isOpen;
+      button.setAttribute("aria-expanded", String(!isOpen));
+    });
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !popover.hidden) {
+        popover.hidden = true;
+        button.setAttribute("aria-expanded", "false");
       }
     });
   }
@@ -566,12 +774,22 @@ export class App {
   }
 
   private activeScene(): GksScene {
-    return this.data.mode === "compare"
-      ? this.data.compareScenes?.[this.activeSceneIndex]?.scene ?? this.scene
-      : this.scene;
+    if (this.data.mode === "compare") {
+      return this.data.compareScenes?.[this.activeSceneIndex]?.scene ?? this.scene;
+    }
+    if (this.data.mode === "run") {
+      return this.activeRunCase()?.scene ?? this.scene;
+    }
+    return this.scene;
   }
 
   private titleText(): string {
+    if (this.data.mode === "run") {
+      const runTitle = this.data.run?.title ?? this.data.run?.runId ?? "Run";
+      const activeCase = this.activeRunCase();
+      const caseTitle = activeCase?.title ?? activeCase?.case.title ?? activeCase?.caseId;
+      return caseTitle ? `${runTitle} / ${caseTitle} / ${this.scene.title ?? this.scene.sceneId}` : runTitle;
+    }
     if (this.data.mode === "compare") {
       const compareTitle = this.data.compare?.title ?? this.data.compare?.compareId ?? "Compare";
       const active = this.data.compareScenes?.[this.activeSceneIndex]?.title;
@@ -580,7 +798,14 @@ export class App {
     return this.scene.title ?? this.scene.sceneId;
   }
 
-  private selectAcrossRenderers(entityId: string): void {
+  private activeRunCase() {
+    if (this.data.mode !== "run") {
+      return undefined;
+    }
+    return this.data.runCases?.find((item) => item.caseId === this.data.activeRunCaseId) ?? this.data.runCases?.[0];
+  }
+
+  private selectAcrossRenderers(entityId: string | undefined): void {
     for (const renderer of this.renderers) {
       renderer.select(entityId);
     }

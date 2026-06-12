@@ -1,12 +1,17 @@
 import "./style.css";
 import { App } from "./app/App";
-import type { GksCase, GksCompare, GksScene, WorkbenchInitialData } from "./schema/GksScene";
+import type { GksCase, GksCompare, GksRun, GksScene, WorkbenchInitialData, WorkbenchRunCase } from "./schema/GksScene";
 
 async function loadDevData(): Promise<WorkbenchInitialData> {
   const params = new URLSearchParams(window.location.search);
   const casePath = params.get("case");
   const scenePath = params.get("scene");
   const comparePath = params.get("compare");
+  const runPath = params.get("run");
+
+  if (runPath) {
+    return loadRunFromExamples(runPath);
+  }
 
   if (casePath) {
     return loadCaseFromExamples(casePath);
@@ -83,6 +88,45 @@ async function loadCompareFromExamples(comparePath: string): Promise<WorkbenchIn
     activeSnapshotId: first.viewId,
     scene: first.scene,
     compareScenes
+  };
+}
+
+async function loadRunFromExamples(runPath: string): Promise<WorkbenchInitialData> {
+  const safeRunPath = safeExamplesPath(runPath);
+  const run = await fetchJson<GksRun>(`/${safeRunPath}`);
+  const runCases = await Promise.all(run.cases.map(async (caseRef): Promise<WorkbenchRunCase> => {
+    const casePath = joinExamplesPath(dirname(safeRunPath), caseRef.file);
+    const gkcase = await fetchJson<GksCase>(`/${casePath}`);
+    const firstSnapshot = gkcase.snapshots[0];
+    if (!firstSnapshot) {
+      throw new Error(`GKS run case ${caseRef.caseId} has no snapshots`);
+    }
+    const scene = await fetchJson<GksScene>(`/${joinExamplesPath(dirname(casePath), firstSnapshot.file)}`);
+    return {
+      ...caseRef,
+      title: caseRef.title ?? gkcase.title,
+      case: gkcase,
+      caseBasePath: dirname(casePath),
+      snapshots: gkcase.snapshots,
+      activeSnapshotId: firstSnapshot.snapshotId,
+      scene
+    };
+  }));
+  const activeRunCase = runCases[0];
+  if (!activeRunCase) {
+    throw new Error("GKS run has no cases");
+  }
+
+  return {
+    mode: "run",
+    run,
+    runCases,
+    activeRunCaseId: activeRunCase.caseId,
+    case: activeRunCase.case,
+    caseBasePath: activeRunCase.caseBasePath,
+    snapshots: activeRunCase.snapshots,
+    activeSnapshotId: activeRunCase.activeSnapshotId,
+    scene: activeRunCase.scene
   };
 }
 

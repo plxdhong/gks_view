@@ -1,11 +1,16 @@
 import * as vscode from "vscode";
+import type { WorkbenchInitialData } from "../gks/GksFileLoader";
 
 type MessageHandler = (message: any) => Promise<any | undefined>;
+type WorkbenchPanelMetadata = {
+  mode?: string;
+  resourceUri?: string;
+};
 
-const panels = new Set<vscode.WebviewPanel>();
+const panels = new Map<vscode.WebviewPanel, WorkbenchPanelMetadata | undefined>();
 
-export function trackWorkbenchPanel(panel: vscode.WebviewPanel): void {
-  panels.add(panel);
+export function trackWorkbenchPanel(panel: vscode.WebviewPanel, metadata?: WorkbenchPanelMetadata): void {
+  panels.set(panel, metadata);
   panel.onDidDispose(() => panels.delete(panel));
 }
 
@@ -28,7 +33,7 @@ export function wireWorkbenchPanelMessages(panel: vscode.WebviewPanel, handler: 
 
 export async function revealEntityInWorkbenchPanels(query: string): Promise<number> {
   let delivered = 0;
-  for (const panel of panels) {
+  for (const panel of panels.keys()) {
     const accepted = await panel.webview.postMessage({
       type: "revealEntity",
       payload: { query }
@@ -40,3 +45,31 @@ export async function revealEntityInWorkbenchPanels(query: string): Promise<numb
   return delivered;
 }
 
+export async function refreshRunWorkbenchPanels(uri: vscode.Uri, data: WorkbenchInitialData): Promise<number> {
+  const resourceUri = uri.toString();
+  let delivered = 0;
+  for (const [panel, metadata] of panels) {
+    if (metadata?.mode !== "run" || metadata.resourceUri !== resourceUri) {
+      continue;
+    }
+    const accepted = await panel.webview.postMessage({
+      type: "runUpdated",
+      payload: { data }
+    });
+    if (accepted) {
+      delivered += 1;
+    }
+  }
+  return delivered;
+}
+
+export function countRunWorkbenchPanels(uri: vscode.Uri): number {
+  const resourceUri = uri.toString();
+  let count = 0;
+  for (const metadata of panels.values()) {
+    if (metadata?.mode === "run" && metadata.resourceUri === resourceUri) {
+      count += 1;
+    }
+  }
+  return count;
+}
