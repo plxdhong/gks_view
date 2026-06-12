@@ -30,6 +30,7 @@ const selectionColor = new THREE.Color("#e5574f");
 const edgeColor = new THREE.Color("#1f2937");
 const vertexColor = new THREE.Color("#f7f7f4");
 const xrayOpacity = 0.32;
+const perspectivePanSpeed = 0.38;
 const axisColors = {
   x: new THREE.Color("#d44f45"),
   y: new THREE.Color("#2f9b5f"),
@@ -82,8 +83,10 @@ export class SceneRenderer {
     this.controls = new TrackballControls(this.activeCamera, this.renderer.domElement);
     this.controls.rotateSpeed = 2.4;
     this.controls.zoomSpeed = 1.15;
-    this.controls.panSpeed = 0.38;
+    this.controls.panSpeed = perspectivePanSpeed;
     this.controls.staticMoving = true;
+    this.controls.keys = ["KeyA", "KeyS", "ShiftLeft"];
+    this.controls.addEventListener("change", this.handleControlsChange);
 
     this.scene.add(this.root);
     this.scene.add(new THREE.HemisphereLight("#ffffff", "#8c8c82", 1.1));
@@ -106,6 +109,7 @@ export class SceneRenderer {
     this.resizeObserver?.disconnect();
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointerDown);
     this.renderer.domElement.removeEventListener("pointerup", this.handlePointerUp);
+    this.controls.removeEventListener("change", this.handleControlsChange);
     this.controls.dispose();
     this.renderer.dispose();
   }
@@ -489,11 +493,28 @@ export class SceneRenderer {
 
   private animate = (): void => {
     requestAnimationFrame(this.animate);
+    this.updateControlTuning();
     this.controls.update();
     this.updateViewDependentDecorations();
     this.updateScaleBar();
     this.renderer.render(this.scene, this.activeCamera);
   };
+
+  private handleControlsChange = (): void => {
+    this.updateClippingForCurrentView();
+    this.updateViewDependentDecorations();
+    this.updateScaleBar();
+  };
+
+  private updateControlTuning(): void {
+    if (this.activeCamera instanceof THREE.OrthographicCamera) {
+      const distance = this.activeCamera.position.distanceTo(this.controls.target);
+      const width = Math.max(1, this.renderer.domElement.clientWidth);
+      this.controls.panSpeed = width / Math.max(distance, 1e-9);
+      return;
+    }
+    this.controls.panSpeed = perspectivePanSpeed;
+  }
 
   private updateScaleBar(): void {
     const worldPerPixel = this.worldUnitsPerPixel();

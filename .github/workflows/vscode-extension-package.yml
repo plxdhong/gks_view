@@ -5,6 +5,12 @@ on:
     branches:
       - release
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Create a GitHub Release after packaging"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -48,6 +54,7 @@ jobs:
           echo "tag=vscode-extension-v${version}" >> "$GITHUB_OUTPUT"
 
       - name: Read release notes
+        if: github.event_name == 'push' || inputs.create_release == true
         run: bun scripts/read-vscode-release-notes.mjs "${{ steps.extension.outputs.version }}" > release-notes.md
 
       - name: Upload VSIX artifact
@@ -59,6 +66,7 @@ jobs:
           retention-days: 30
 
       - name: Create GitHub Release
+        if: github.event_name == 'push' || inputs.create_release == true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

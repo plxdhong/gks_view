@@ -94,6 +94,7 @@ export class App {
         <div class="help-grid">
           <span>左键拖动</span><span>旋转视图</span>
           <span>右键拖动</span><span>平移视图</span>
+          <span>Shift + 左键</span><span>平移视图</span>
           <span>滚轮</span><span>缩放视图</span>
           <span>点击实体</span><span>选择并设置旋转中心</span>
           <span>点击空白</span><span>取消选择</span>
