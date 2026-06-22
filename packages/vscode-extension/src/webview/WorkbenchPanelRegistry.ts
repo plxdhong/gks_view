@@ -45,6 +45,13 @@ export async function revealEntityInWorkbenchPanels(query: string): Promise<numb
   return delivered;
 }
 
+export async function postWorkbenchUpdated(panel: vscode.WebviewPanel, data: WorkbenchInitialData): Promise<boolean> {
+  return panel.webview.postMessage({
+    type: "workbenchUpdated",
+    payload: { data }
+  });
+}
+
 export async function refreshRunWorkbenchPanels(uri: vscode.Uri, data: WorkbenchInitialData): Promise<number> {
   const resourceUri = uri.toString();
   let delivered = 0;
@@ -52,10 +59,7 @@ export async function refreshRunWorkbenchPanels(uri: vscode.Uri, data: Workbench
     if (metadata?.mode !== "run" || metadata.resourceUri !== resourceUri) {
       continue;
     }
-    const accepted = await panel.webview.postMessage({
-      type: "runUpdated",
-      payload: { data }
-    });
+    const accepted = await postWorkbenchUpdated(panel, data);
     if (accepted) {
       delivered += 1;
     }

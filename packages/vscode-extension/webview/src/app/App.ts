@@ -36,8 +36,9 @@ export class App {
   private rightPanelWidth = readStoredNumber("gkWorkbench.rightPanelWidth", 330);
   private leftPanelCollapsed = readStoredBoolean("gkWorkbench.leftPanelCollapsed", false);
   private rightPanelCollapsed = readStoredBoolean("gkWorkbench.rightPanelCollapsed", false);
-  private cameraMode: CameraMode = "perspective";
+  private cameraMode: CameraMode = "orthographic";
   private displayMode: DisplayMode = "all";
+  private updateNoticeTimer: number | undefined;
 
   constructor(
     private readonly host: HTMLElement,
@@ -52,10 +53,10 @@ export class App {
         </div>
         <div class="toolbar-actions">
           <div class="toolbar-control camera-control" aria-label="View camera mode">
-            <span class="toolbar-control-label">View</span>
+            <span class="toolbar-control-label">Cam</span>
             <div class="segmented-control" role="group" aria-label="Camera mode">
-              <button class="mode-button camera-mode-button is-active" type="button" data-camera-mode="perspective" aria-pressed="true">Perspective</button>
-              <button class="mode-button camera-mode-button" type="button" data-camera-mode="orthographic" aria-pressed="false">Orthographic</button>
+              <button class="mode-button camera-mode-button" type="button" data-camera-mode="perspective" title="Perspective view" aria-label="Perspective view" aria-pressed="false">Persp</button>
+              <button class="mode-button camera-mode-button is-active" type="button" data-camera-mode="orthographic" title="Orthographic view" aria-label="Orthographic view" aria-pressed="true">Ortho</button>
             </div>
           </div>
           <label class="mode-select-label">
@@ -73,7 +74,7 @@ export class App {
           </button>
           <button class="view-reset-button" type="button" title="Reset view" aria-label="Reset view">
             <span class="view-reset-icon" aria-hidden="true"></span>
-            <span>Reset View</span>
+            <span>Reset</span>
           </button>
           <div class="panel-toggle-group" role="group" aria-label="Workbench panels">
             <button class="toolbar-icon-button panel-toggle-button left-panel-toggle" type="button" title="Toggle left panel" aria-label="Toggle left panel" aria-pressed="true">
@@ -129,6 +130,7 @@ export class App {
           <div class="debug-host"></div>
         </section>
       </aside>
+      <div class="update-toast" aria-live="polite" hidden>已自动刷新</div>
     `;
 
     this.scene = data.scene;
@@ -292,13 +294,7 @@ export class App {
       }
       activeRunCase.activeSnapshotId = snapshotId;
       this.data.snapshots = activeRunCase.snapshots;
-      if (this.vscode) {
-        const requestId = `request-${Date.now()}`;
-        this.vscode.postMessage({
-          type: "requestScene",
-          requestId,
-          payload: { caseId: activeRunCase.caseId, snapshotId }
-        });
+      if (this.requestSnapshotScene(snapshotId, activeRunCase.caseId)) {
         return;
       }
       const snapshot = activeRunCase.snapshots.find((item) => item.snapshotId === snapshotId);
@@ -326,13 +322,7 @@ export class App {
       return;
     }
 
-    if (this.vscode) {
-      const requestId = `request-${Date.now()}`;
-      this.vscode.postMessage({
-        type: "requestScene",
-        requestId,
-        payload: { snapshotId }
-      });
+    if (this.requestSnapshotScene(snapshotId)) {
       return;
     }
 
@@ -433,19 +423,104 @@ export class App {
     this.renderAll();
   }
 
-  private applyRunUpdate(data: WorkbenchInitialData): void {
+  private applyWorkbenchUpdate(data: WorkbenchInitialData): void {
     const previousRunCaseId = this.data.activeRunCaseId;
+    const previousSnapshotId = this.data.activeSnapshotId;
+    const previousCompareViewId = this.data.mode === "compare"
+      ? this.data.compareScenes?.[this.activeSceneIndex]?.viewId
+      : undefined;
+
     this.data = data;
     this.selectedEntityId = undefined;
-    const nextCaseId = previousRunCaseId && data.runCases?.some((item) => item.caseId === previousRunCaseId)
-      ? previousRunCaseId
-      : data.activeRunCaseId;
-    if (nextCaseId) {
-      this.activateRunCase(nextCaseId, false);
+
+    if (data.mode === "run") {
+      this.applyRunUpdate(previousRunCaseId, previousSnapshotId);
       return;
     }
+
+    if (data.mode === "case") {
+      this.applyCaseUpdate(previousSnapshotId);
+      return;
+    }
+
+    if (data.mode === "compare") {
+      this.applyCompareUpdate(previousCompareViewId ?? previousSnapshotId);
+      return;
+    }
+
     this.scene = data.scene;
     this.renderAll();
+  }
+
+  private applyRunUpdate(previousRunCaseId: string | undefined, previousSnapshotId: string | undefined): void {
+    const data = this.data;
+    if (data.mode !== "run") {
+      return;
+    }
+    const targetCase = previousRunCaseId
+      ? data.runCases?.find((item) => item.caseId === previousRunCaseId)
+      : undefined;
+    const nextCase = targetCase
+      ?? data.runCases?.find((item) => item.caseId === data.activeRunCaseId)
+      ?? data.runCases?.[0];
+    if (!nextCase) {
+      this.scene = data.scene;
+      this.renderAll();
+      return;
+    }
+    const targetSnapshotId = previousSnapshotId && nextCase.snapshots.some((item) => item.snapshotId === previousSnapshotId)
+      ? previousSnapshotId
+      : nextCase.activeSnapshotId;
+
+    nextCase.activeSnapshotId = targetSnapshotId;
+    data.activeRunCaseId = nextCase.caseId;
+    data.case = nextCase.case;
+    data.caseBasePath = nextCase.caseBasePath;
+    data.snapshots = nextCase.snapshots;
+    data.activeSnapshotId = targetSnapshotId;
+    this.scene = nextCase.scene;
+    this.renderAll();
+
+    if (targetSnapshotId !== nextCase.scene.snapshotId) {
+      this.requestSnapshotScene(targetSnapshotId, nextCase.caseId);
+    }
+  }
+
+  private applyCaseUpdate(previousSnapshotId: string | undefined): void {
+    const targetSnapshotId = previousSnapshotId && this.data.snapshots.some((item) => item.snapshotId === previousSnapshotId)
+      ? previousSnapshotId
+      : this.data.activeSnapshotId;
+
+    this.data.activeSnapshotId = targetSnapshotId;
+    this.scene = this.data.scene;
+    this.renderAll();
+
+    if (targetSnapshotId !== this.data.scene.snapshotId) {
+      this.requestSnapshotScene(targetSnapshotId);
+    }
+  }
+
+  private applyCompareUpdate(previousViewId: string | undefined): void {
+    const compareScenes = this.data.compareScenes ?? [];
+    const targetIndex = previousViewId
+      ? compareScenes.findIndex((item) => item.viewId === previousViewId)
+      : -1;
+    this.activeSceneIndex = targetIndex >= 0 ? targetIndex : 0;
+    this.data.activeSnapshotId = compareScenes[this.activeSceneIndex]?.viewId ?? this.data.activeSnapshotId;
+    this.scene = this.activeScene();
+    this.renderAll();
+  }
+
+  private requestSnapshotScene(snapshotId: string, caseId?: string): boolean {
+    if (!this.vscode) {
+      return false;
+    }
+    this.vscode.postMessage({
+      type: "requestScene",
+      requestId: `request-${Date.now()}`,
+      payload: { caseId, snapshotId }
+    });
+    return true;
   }
 
   private handleMessage(message: unknown): void {
@@ -469,8 +544,9 @@ export class App {
     if (typed.type === "runSceneLoaded" && typed.payload?.scene) {
       this.applyRunSceneResult(typed.payload as WorkbenchRunSceneResult);
     }
-    if (typed.type === "runUpdated" && typed.payload?.data) {
-      this.applyRunUpdate(typed.payload.data);
+    if ((typed.type === "workbenchUpdated" || typed.type === "runUpdated") && typed.payload?.data) {
+      this.applyWorkbenchUpdate(typed.payload.data);
+      this.showUpdateNotice();
     }
     if (typed.type === "revealEntity") {
       const query = (typed.payload as { query?: string } | undefined)?.query;
@@ -842,6 +918,23 @@ export class App {
       requestId: `entity-properties-${Date.now()}`,
       payload: { entityId }
     });
+  }
+
+  private showUpdateNotice(): void {
+    const toast = this.mustQuery<HTMLElement>(".update-toast");
+    toast.hidden = false;
+    toast.textContent = "已自动刷新";
+    window.requestAnimationFrame(() => toast.classList.add("is-visible"));
+    if (this.updateNoticeTimer) {
+      window.clearTimeout(this.updateNoticeTimer);
+    }
+    this.updateNoticeTimer = window.setTimeout(() => {
+      toast.classList.remove("is-visible");
+      this.updateNoticeTimer = window.setTimeout(() => {
+        toast.hidden = true;
+        this.updateNoticeTimer = undefined;
+      }, 220);
+    }, 2200);
   }
 
   private showError(message: string): void {

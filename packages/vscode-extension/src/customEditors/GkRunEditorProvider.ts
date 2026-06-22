@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { GksFileLoader, type WorkbenchInitialData } from "../gks/GksFileLoader";
 import { WebviewHtmlProvider } from "../webview/WebviewHtmlProvider";
 import { trackWorkbenchPanel, wireWorkbenchPanelMessages } from "../webview/WorkbenchPanelRegistry";
+import { watchWorkbenchJsonFiles } from "./watchWorkbenchJsonFiles";
 
 export class GkRunEditorProvider implements vscode.CustomReadonlyEditorProvider {
   static readonly viewType = "gkWorkbench.gkrun";
@@ -37,6 +38,7 @@ export class GkRunEditorProvider implements vscode.CustomReadonlyEditorProvider 
     configureWorkbenchWebview(webviewPanel, this.htmlProvider, initialData);
     trackWorkbenchPanel(webviewPanel, { mode: "run", resourceUri: document.uri.toString() });
     wireWebviewMessages(webviewPanel, this.loader, document.uri);
+    watchWorkbenchJsonFiles(webviewPanel, document.uri, "**/*.json", () => this.loader.loadRun(document.uri));
   }
 }
 

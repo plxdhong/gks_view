@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { GksFileLoader, WorkbenchInitialData } from "../gks/GksFileLoader";
 import { WebviewHtmlProvider } from "../webview/WebviewHtmlProvider";
 import { trackWorkbenchPanel, wireWorkbenchPanelMessages } from "../webview/WorkbenchPanelRegistry";
+import { watchWorkbenchJsonFiles } from "./watchWorkbenchJsonFiles";
 
 export class GkCaseEditorProvider implements vscode.CustomReadonlyEditorProvider {
   static readonly viewType = "gkWorkbench.gkcase";
@@ -35,8 +36,9 @@ export class GkCaseEditorProvider implements vscode.CustomReadonlyEditorProvider
   ): Promise<void> {
     const initialData = await this.loader.loadCase(document.uri);
     configureWorkbenchWebview(webviewPanel, this.htmlProvider, initialData);
-    trackWorkbenchPanel(webviewPanel);
+    trackWorkbenchPanel(webviewPanel, { mode: "case", resourceUri: document.uri.toString() });
     wireWebviewMessages(webviewPanel, this.loader, document.uri);
+    watchWorkbenchJsonFiles(webviewPanel, document.uri, "**/*.json", () => this.loader.loadCase(document.uri));
   }
 }
 

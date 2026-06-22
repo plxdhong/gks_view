@@ -1,7 +1,9 @@
+import * as path from "node:path";
 import * as vscode from "vscode";
 import { GksFileLoader } from "../gks/GksFileLoader";
 import { WebviewHtmlProvider } from "../webview/WebviewHtmlProvider";
 import { trackWorkbenchPanel } from "../webview/WorkbenchPanelRegistry";
+import { watchWorkbenchJsonFiles } from "./watchWorkbenchJsonFiles";
 
 export class GkSceneEditorProvider implements vscode.CustomReadonlyEditorProvider {
   static readonly viewType = "gkWorkbench.gkscene";
@@ -41,6 +43,12 @@ export class GkSceneEditorProvider implements vscode.CustomReadonlyEditorProvide
       ]
     };
     webviewPanel.webview.html = this.htmlProvider.render(webviewPanel.webview, initialData);
-    trackWorkbenchPanel(webviewPanel);
+    trackWorkbenchPanel(webviewPanel, { mode: "scene", resourceUri: document.uri.toString() });
+    watchWorkbenchJsonFiles(
+      webviewPanel,
+      document.uri,
+      path.basename(document.uri.fsPath),
+      () => this.loader.loadSingleScene(document.uri)
+    );
   }
 }

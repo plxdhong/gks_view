@@ -2,7 +2,7 @@
   "name": "geometry-kernel-workbench",
   "displayName": "Geometry Kernel Workbench",
   "description": "Inspect GKS geometry snapshots with topology trees, properties, compare views, and Three.js rendering.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "gk-workbench",
   "license": "UNLICENSED",
   "icon": "resources/icon.png",

@@ -41,7 +41,7 @@ export class SceneRenderer {
   private readonly scene = new THREE.Scene();
   private readonly perspectiveCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
   private readonly orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 1000);
-  private activeCamera: WorkbenchCamera = this.perspectiveCamera;
+  private activeCamera: WorkbenchCamera = this.orthographicCamera;
   private readonly renderer: THREE.WebGLRenderer;
   private readonly controls: TrackballControls;
   private readonly raycaster = new THREE.Raycaster();
@@ -57,7 +57,7 @@ export class SceneRenderer {
   private readonly defaultViewDirection = new THREE.Vector3(1, -1, 0.75).normalize();
   private readonly defaultCameraUp = new THREE.Vector3(0, 0, 1);
   private currentUnit = "m";
-  private cameraMode: CameraMode = "perspective";
+  private cameraMode: CameraMode = "orthographic";
   private displayMode: DisplayMode = "all";
   private hiddenEntityIds = new Set<string>();
   private orthographicViewHeight = 2;

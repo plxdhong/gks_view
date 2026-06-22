@@ -989,6 +989,31 @@ button {
   white-space: pre-wrap;
 }
 
+.update-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 40;
+  max-width: min(260px, calc(100vw - 36px));
+  border: 1px solid rgba(73, 82, 70, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: rgba(251, 251, 248, 0.88);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  color: #565c54;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.update-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @keyframes tree-reveal-pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(212, 150, 56, 0.65);
