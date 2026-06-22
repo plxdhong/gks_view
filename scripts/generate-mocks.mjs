@@ -311,6 +311,20 @@ function createCubeScene({
         edges: stepIndex >= 2 ? ["edge:005", "edge:006", "edge:007", "edge:008"] : [],
         vertices: []
       },
+      highlightGroups: stepIndex >= 2 ? [
+        {
+          groupId: "seed-face",
+          title: "Seed face",
+          color: "#f59e0b",
+          faces: ["face:top"]
+        },
+        {
+          groupId: "boundary-edges",
+          title: "Boundary edges",
+          color: "#22c55e",
+          edges: ["edge:005", "edge:006", "edge:007", "edge:008"]
+        }
+      ] : [],
       annotations: stepIndex >= 2 ? [{
         id: "ann_001",
         type: "message",
@@ -585,6 +599,20 @@ function createCylinderHoleScene() {
         edges: ["edge:inner_top", "edge:inner_bottom"],
         vertices: []
       },
+      highlightGroups: [
+        {
+          groupId: "inner-wall",
+          title: "Inner wall",
+          color: "#14b8a6",
+          faces: ["face:inner_wall"]
+        },
+        {
+          groupId: "hole-rims",
+          title: "Hole rims",
+          color: "#f97316",
+          edges: ["edge:inner_top", "edge:inner_bottom"]
+        }
+      ],
       annotations: [{
         id: "ann_hole",
         type: "message",
@@ -729,9 +757,45 @@ function generateSplitCompare() {
   });
 }
 
+function generateMockRun() {
+  writeJson("run.gkrun.json", {
+    gksVersion: "0.1",
+    runId: "MockRun.001",
+    title: "Mock Geometry Run",
+    createdAt: "2026-06-12T00:00:00Z",
+    cases: [
+      {
+        caseId: "Cube.Case_001",
+        title: "Cube",
+        file: "Cube.Case_001/index.gkcase.json",
+        suite: "mock",
+        test: "Cube",
+        status: "passed"
+      },
+      {
+        caseId: "CylinderHole.Case_001",
+        title: "Cylinder Hole",
+        file: "CylinderHole.Case_001/index.gkcase.json",
+        suite: "mock",
+        test: "CylinderHole",
+        status: "passed"
+      },
+      {
+        caseId: "HoleGrow.Case_001",
+        title: "HoleGrow",
+        file: "HoleGrow.Case_001/index.gkcase.json",
+        suite: "mock",
+        test: "HoleGrow",
+        status: "failed"
+      }
+    ]
+  });
+}
+
 generateHoleGrowCase();
 generateCubeCase();
 generateCylinderHoleCase();
 generateSplitCompare();
+generateMockRun();
 
 console.log(`Generated mock GKS artifacts in ${path.relative(root, mockRoot)}`);

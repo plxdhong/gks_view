@@ -4,16 +4,21 @@ import type {
   GksCase,
   GksCompare,
   GksCompareSceneRef,
+  GksRun,
+  GksRunCaseRef,
   GksScene
 } from "@gk-workbench/gks-schema";
 
-export type { EntityIdentity, EntityKind, GksCase, GksCompare, GksCompareSceneRef, GksScene };
+export type { EntityIdentity, EntityKind, GksCase, GksCompare, GksCompareSceneRef, GksRun, GksRunCaseRef, GksScene };
 
 export interface WorkbenchInitialData {
-  mode: "case" | "scene" | "compare" | "adapter";
+  mode: "case" | "scene" | "compare" | "run" | "adapter";
   case?: GksCase;
   caseBasePath?: string;
   compare?: GksCompare;
+  run?: GksRun;
+  runCases?: WorkbenchRunCase[];
+  activeRunCaseId?: string;
   snapshots: WorkbenchSnapshotItem[];
   activeSnapshotId: string;
   scene: GksScene;
@@ -23,6 +28,23 @@ export interface WorkbenchInitialData {
     displayName: string;
     modelId: string;
   };
+}
+
+export interface WorkbenchRunCase extends GksRunCaseRef {
+  case: GksCase;
+  caseBasePath: string;
+  snapshots: WorkbenchSnapshotItem[];
+  activeSnapshotId: string;
+  scene: GksScene;
+}
+
+export interface WorkbenchRunSceneResult {
+  activeRunCaseId: string;
+  case: GksCase;
+  caseBasePath: string;
+  snapshots: WorkbenchSnapshotItem[];
+  activeSnapshotId: string;
+  scene: GksScene;
 }
 
 export interface WorkbenchSnapshotItem {

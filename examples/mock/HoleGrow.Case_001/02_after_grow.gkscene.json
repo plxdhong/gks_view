@@ -2689,6 +2689,27 @@
       ],
       "vertices": []
     },
+    "highlightGroups": [
+      {
+        "groupId": "seed-face",
+        "title": "Seed face",
+        "color": "#f59e0b",
+        "faces": [
+          "face:top"
+        ]
+      },
+      {
+        "groupId": "boundary-edges",
+        "title": "Boundary edges",
+        "color": "#22c55e",
+        "edges": [
+          "edge:005",
+          "edge:006",
+          "edge:007",
+          "edge:008"
+        ]
+      }
+    ],
     "annotations": [
       {
         "id": "ann_001",

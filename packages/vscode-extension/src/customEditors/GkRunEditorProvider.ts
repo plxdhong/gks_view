@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
-import { GksFileLoader, WorkbenchInitialData } from "../gks/GksFileLoader";
+import { GksFileLoader, type WorkbenchInitialData } from "../gks/GksFileLoader";
 import { WebviewHtmlProvider } from "../webview/WebviewHtmlProvider";
 import { trackWorkbenchPanel, wireWorkbenchPanelMessages } from "../webview/WorkbenchPanelRegistry";
 import { watchWorkbenchJsonFiles } from "./watchWorkbenchJsonFiles";
 
-export class GkCaseEditorProvider implements vscode.CustomReadonlyEditorProvider {
-  static readonly viewType = "gkWorkbench.gkcase";
+export class GkRunEditorProvider implements vscode.CustomReadonlyEditorProvider {
+  static readonly viewType = "gkWorkbench.gkrun";
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -15,8 +15,8 @@ export class GkCaseEditorProvider implements vscode.CustomReadonlyEditorProvider
 
   static register(context: vscode.ExtensionContext): vscode.Disposable {
     return vscode.window.registerCustomEditorProvider(
-      GkCaseEditorProvider.viewType,
-      new GkCaseEditorProvider(context),
+      GkRunEditorProvider.viewType,
+      new GkRunEditorProvider(context),
       {
         supportsMultipleEditorsPerDocument: true,
         webviewOptions: {
@@ -34,11 +34,11 @@ export class GkCaseEditorProvider implements vscode.CustomReadonlyEditorProvider
     document: vscode.CustomDocument,
     webviewPanel: vscode.WebviewPanel
   ): Promise<void> {
-    const initialData = await this.loader.loadCase(document.uri);
+    const initialData = await this.loader.loadRun(document.uri);
     configureWorkbenchWebview(webviewPanel, this.htmlProvider, initialData);
-    trackWorkbenchPanel(webviewPanel, { mode: "case", resourceUri: document.uri.toString() });
+    trackWorkbenchPanel(webviewPanel, { mode: "run", resourceUri: document.uri.toString() });
     wireWebviewMessages(webviewPanel, this.loader, document.uri);
-    watchWorkbenchJsonFiles(webviewPanel, document.uri, "**/*.json", () => this.loader.loadCase(document.uri));
+    watchWorkbenchJsonFiles(webviewPanel, document.uri, "**/*.json", () => this.loader.loadRun(document.uri));
   }
 }
 
@@ -59,17 +59,21 @@ function configureWorkbenchWebview(
 function wireWebviewMessages(
   webviewPanel: vscode.WebviewPanel,
   loader: GksFileLoader,
-  caseUri: vscode.Uri
+  runUri: vscode.Uri
 ): void {
   wireWorkbenchPanelMessages(webviewPanel, async (message) => {
     if (message?.type !== "requestScene") {
       return undefined;
     }
-    const scene = await loader.loadSnapshotScene(caseUri, message.payload?.snapshotId);
+    const result = await loader.loadRunCaseSnapshotScene(
+      runUri,
+      message.payload?.caseId,
+      message.payload?.snapshotId
+    );
     return {
-      type: "sceneLoaded",
+      type: "runSceneLoaded",
       requestId: message.requestId,
-      payload: { scene }
+      payload: result
     };
   });
 }

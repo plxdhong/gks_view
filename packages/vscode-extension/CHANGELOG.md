@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.5
+
+### Changed
+
+- Switched the default workbench camera to orthographic view.
+- Shortened the camera and reset-view toolbar labels so compact windows keep the primary controls visible.
+
+### Added
+
+- Automatically refreshes open workbench views when the active `.gkrun.json`, nested case JSON files, or directly opened GKS JSON files change on disk.
+- Shows a subtle temporary in-view notice after automatic refreshes.
+- Preserves the current run case, snapshot, and camera framing when refreshed data is reloaded.
+
 ## 0.1.4
 
 ### Fixed

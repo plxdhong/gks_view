@@ -4254,6 +4254,25 @@
       ],
       "vertices": []
     },
+    "highlightGroups": [
+      {
+        "groupId": "inner-wall",
+        "title": "Inner wall",
+        "color": "#14b8a6",
+        "faces": [
+          "face:inner_wall"
+        ]
+      },
+      {
+        "groupId": "hole-rims",
+        "title": "Hole rims",
+        "color": "#f97316",
+        "edges": [
+          "edge:inner_top",
+          "edge:inner_bottom"
+        ]
+      }
+    ],
     "annotations": [
       {
         "id": "ann_hole",

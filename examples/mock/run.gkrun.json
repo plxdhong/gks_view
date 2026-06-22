@@ -1,0 +1,32 @@
+{
+  "gksVersion": "0.1",
+  "runId": "MockRun.001",
+  "title": "Mock Geometry Run",
+  "createdAt": "2026-06-12T00:00:00Z",
+  "cases": [
+    {
+      "caseId": "Cube.Case_001",
+      "title": "Cube",
+      "file": "Cube.Case_001/index.gkcase.json",
+      "suite": "mock",
+      "test": "Cube",
+      "status": "passed"
+    },
+    {
+      "caseId": "CylinderHole.Case_001",
+      "title": "Cylinder Hole",
+      "file": "CylinderHole.Case_001/index.gkcase.json",
+      "suite": "mock",
+      "test": "CylinderHole",
+      "status": "passed"
+    },
+    {
+      "caseId": "HoleGrow.Case_001",
+      "title": "HoleGrow",
+      "file": "HoleGrow.Case_001/index.gkcase.json",
+      "suite": "mock",
+      "test": "HoleGrow",
+      "status": "failed"
+    }
+  ]
+}

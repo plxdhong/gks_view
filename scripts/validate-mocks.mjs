@@ -116,18 +116,39 @@ function validateCompare(comparePath) {
   }
 }
 
+function validateRun(runPath) {
+  const run = readJson(runPath);
+  assert(run.gksVersion === "0.1", `${runPath}: run gksVersion must be 0.1`);
+  assert(typeof run.runId === "string", `${runPath}: runId is required`);
+  assertArray(run.cases, `${runPath}: cases`);
+  assert(run.cases.length >= 1, `${runPath}: expected at least one run case`);
+
+  const caseIds = new Set();
+  for (const caseRef of run.cases) {
+    assert(typeof caseRef.caseId === "string", `${runPath}: caseId is required`);
+    assert(!caseIds.has(caseRef.caseId), `${runPath}: duplicate caseId ${caseRef.caseId}`);
+    caseIds.add(caseRef.caseId);
+    assert(typeof caseRef.file === "string", `${runPath}: case file is required`);
+    const casePath = path.resolve(path.dirname(runPath), caseRef.file);
+    assert(fs.existsSync(casePath), `${runPath}: missing run case file ${caseRef.file}`);
+    validateCase(casePath);
+  }
+}
+
 let totalCaseCount = 0;
 let totalCompareCount = 0;
+let totalRunCount = 0;
 
 for (const currentRoot of roots) {
   assert(fs.existsSync(currentRoot), `${path.relative(root, currentRoot)} does not exist`);
   const files = walkFiles(currentRoot);
   const caseFiles = files.filter((filePath) => filePath.endsWith(".gkcase.json"));
   const compareFiles = files.filter((filePath) => filePath.endsWith(".gkcompare.json"));
+  const runFiles = files.filter((filePath) => filePath.endsWith(".gkrun.json"));
 
   assert(
-    caseFiles.length > 0 || compareFiles.length > 0,
-    `expected at least one GKS case or compare under ${path.relative(root, currentRoot)}`
+    caseFiles.length > 0 || compareFiles.length > 0 || runFiles.length > 0,
+    `expected at least one GKS case, compare, or run under ${path.relative(root, currentRoot)}`
   );
 
   for (const casePath of caseFiles) {
@@ -138,8 +159,13 @@ for (const currentRoot of roots) {
     validateCompare(comparePath);
   }
 
+  for (const runPath of runFiles) {
+    validateRun(runPath);
+  }
+
   totalCaseCount += caseFiles.length;
   totalCompareCount += compareFiles.length;
+  totalRunCount += runFiles.length;
 }
 
-console.log(`Validated ${totalCaseCount} cases and ${totalCompareCount} compares under ${roots.map((item) => path.relative(root, item)).join(", ")}`);
+console.log(`Validated ${totalCaseCount} cases, ${totalCompareCount} compares, and ${totalRunCount} runs under ${roots.map((item) => path.relative(root, item)).join(", ")}`);

@@ -11,7 +11,7 @@ export interface PickedEntity {
 export type CameraMode = "perspective" | "orthographic";
 export type DisplayMode = "points" | "wireframe" | "solid" | "all" | "xray";
 
-type SelectCallback = (selection: PickedEntity) => void;
+type SelectCallback = (selection: PickedEntity | undefined) => void;
 type RenderKind = "solid" | "wireframe" | "point";
 type WorkbenchCamera = THREE.PerspectiveCamera | THREE.OrthographicCamera;
 type LoadSceneOptions = {
@@ -30,6 +30,7 @@ const selectionColor = new THREE.Color("#e5574f");
 const edgeColor = new THREE.Color("#1f2937");
 const vertexColor = new THREE.Color("#f7f7f4");
 const xrayOpacity = 0.32;
+const perspectivePanSpeed = 0.38;
 const axisColors = {
   x: new THREE.Color("#d44f45"),
   y: new THREE.Color("#2f9b5f"),
@@ -40,7 +41,7 @@ export class SceneRenderer {
   private readonly scene = new THREE.Scene();
   private readonly perspectiveCamera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
   private readonly orthographicCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.01, 1000);
-  private activeCamera: WorkbenchCamera = this.perspectiveCamera;
+  private activeCamera: WorkbenchCamera = this.orthographicCamera;
   private readonly renderer: THREE.WebGLRenderer;
   private readonly controls: TrackballControls;
   private readonly raycaster = new THREE.Raycaster();
@@ -56,7 +57,7 @@ export class SceneRenderer {
   private readonly defaultViewDirection = new THREE.Vector3(1, -1, 0.75).normalize();
   private readonly defaultCameraUp = new THREE.Vector3(0, 0, 1);
   private currentUnit = "m";
-  private cameraMode: CameraMode = "perspective";
+  private cameraMode: CameraMode = "orthographic";
   private displayMode: DisplayMode = "all";
   private hiddenEntityIds = new Set<string>();
   private orthographicViewHeight = 2;
@@ -65,6 +66,7 @@ export class SceneRenderer {
   private selectedEntityId: string | undefined;
   private onSelectCallback: SelectCallback | undefined;
   private resizeObserver: ResizeObserver | undefined;
+  private pointerDown: { x: number; y: number; button: number } | undefined;
 
   constructor(private readonly host: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -81,8 +83,10 @@ export class SceneRenderer {
     this.controls = new TrackballControls(this.activeCamera, this.renderer.domElement);
     this.controls.rotateSpeed = 2.4;
     this.controls.zoomSpeed = 1.15;
-    this.controls.panSpeed = 0.38;
+    this.controls.panSpeed = perspectivePanSpeed;
     this.controls.staticMoving = true;
+    this.controls.keys = ["KeyA", "KeyS", "ShiftLeft"];
+    this.controls.addEventListener("change", this.handleControlsChange);
 
     this.scene.add(this.root);
     this.scene.add(new THREE.HemisphereLight("#ffffff", "#8c8c82", 1.1));
@@ -93,6 +97,7 @@ export class SceneRenderer {
     this.raycaster.params.Line = { threshold: 0.035 };
     this.raycaster.params.Points = { threshold: 0.08 };
     this.renderer.domElement.addEventListener("pointerdown", this.handlePointerDown);
+    this.renderer.domElement.addEventListener("pointerup", this.handlePointerUp);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.host);
@@ -103,6 +108,8 @@ export class SceneRenderer {
   dispose(): void {
     this.resizeObserver?.disconnect();
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointerDown);
+    this.renderer.domElement.removeEventListener("pointerup", this.handlePointerUp);
+    this.controls.removeEventListener("change", this.handleControlsChange);
     this.controls.dispose();
     this.renderer.dispose();
   }
@@ -122,11 +129,7 @@ export class SceneRenderer {
     this.selectedEntityId = selectedEntityId;
     this.hiddenEntityIds = new Set(hiddenEntityIds);
     this.currentUnit = scene.unit ?? "m";
-    const highlighted = new Set<string>([
-      ...(scene.debug?.highlights?.faces ?? []),
-      ...(scene.debug?.highlights?.edges ?? []),
-      ...(scene.debug?.highlights?.vertices ?? [])
-    ]);
+    const highlightColors = highlightColorByEntity(scene);
 
     for (const mesh of scene.geometry.faceMeshes) {
       if (mesh.display?.visible === false) {
@@ -142,8 +145,9 @@ export class SceneRenderer {
       }
       geometry.computeBoundingSphere();
       const baseColor = new THREE.Color(mesh.display?.color ?? faceColor);
+      const effectiveColor = highlightColors.get(mesh.entityId) ?? baseColor;
       const material = new THREE.MeshStandardMaterial({
-        color: highlighted.has(mesh.entityId) ? highlightColor : baseColor,
+        color: effectiveColor,
         metalness: 0,
         roughness: 0.72,
         transparent: (mesh.display?.opacity ?? 1) < 1,
@@ -161,7 +165,7 @@ export class SceneRenderer {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute(polyline.points, 3));
       const material = new THREE.LineBasicMaterial({
-        color: highlighted.has(polyline.entityId) ? highlightColor : (polyline.display?.color ?? edgeColor),
+        color: highlightColors.get(polyline.entityId) ?? (polyline.display?.color ?? edgeColor),
         linewidth: polyline.display?.lineWidth ?? 1
       });
       const line = new THREE.Line(geometry, material);
@@ -174,7 +178,7 @@ export class SceneRenderer {
         continue;
       }
       const material = new THREE.MeshStandardMaterial({
-        color: highlighted.has(point.entityId) ? highlightColor : (point.display?.color ?? vertexColor),
+        color: highlightColors.get(point.entityId) ?? (point.display?.color ?? vertexColor),
         metalness: 0,
         roughness: 0.35
       });
@@ -489,11 +493,28 @@ export class SceneRenderer {
 
   private animate = (): void => {
     requestAnimationFrame(this.animate);
+    this.updateControlTuning();
     this.controls.update();
     this.updateViewDependentDecorations();
     this.updateScaleBar();
     this.renderer.render(this.scene, this.activeCamera);
   };
+
+  private handleControlsChange = (): void => {
+    this.updateClippingForCurrentView();
+    this.updateViewDependentDecorations();
+    this.updateScaleBar();
+  };
+
+  private updateControlTuning(): void {
+    if (this.activeCamera instanceof THREE.OrthographicCamera) {
+      const distance = this.activeCamera.position.distanceTo(this.controls.target);
+      const width = Math.max(1, this.renderer.domElement.clientWidth);
+      this.controls.panSpeed = width / Math.max(distance, 1e-9);
+      return;
+    }
+    this.controls.panSpeed = perspectivePanSpeed;
+  }
 
   private updateScaleBar(): void {
     const worldPerPixel = this.worldUnitsPerPixel();
@@ -527,6 +548,24 @@ export class SceneRenderer {
   }
 
   private handlePointerDown = (event: PointerEvent): void => {
+    if (event.button !== 0) {
+      this.pointerDown = undefined;
+      return;
+    }
+    this.pointerDown = { x: event.clientX, y: event.clientY, button: event.button };
+  };
+
+  private handlePointerUp = (event: PointerEvent): void => {
+    const down = this.pointerDown;
+    this.pointerDown = undefined;
+    if (!down || down.button !== event.button) {
+      return;
+    }
+    const moved = Math.hypot(event.clientX - down.x, event.clientY - down.y);
+    if (moved > 4) {
+      return;
+    }
+
     const rect = this.renderer.domElement.getBoundingClientRect();
     this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -535,7 +574,16 @@ export class SceneRenderer {
     const entityId = entityIdForHitObject(hit?.object);
     const kind = entityId ? kindFromEntityId(entityId) : undefined;
     if (!entityId || !kind) {
+      this.selectedEntityId = undefined;
+      this.applySelection(undefined);
+      this.onSelectCallback?.(undefined);
       return;
+    }
+    if (hit?.point) {
+      this.controls.target.copy(hit.point);
+      this.controls.update();
+      this.updateViewDependentDecorations();
+      this.updateScaleBar();
     }
     this.selectedEntityId = entityId;
     this.applySelection(entityId);
@@ -650,6 +698,44 @@ function materialForObject(object: THREE.Object3D): ColorMaterial | undefined {
   }
   const material = object.material;
   return Array.isArray(material) ? material[0] as ColorMaterial | undefined : material as ColorMaterial | undefined;
+}
+
+function highlightColorByEntity(scene: GksScene): Map<string, THREE.Color> {
+  const colors = new Map<string, THREE.Color>();
+  addHighlightSet(colors, highlightColor, scene.debug?.highlights);
+  for (const group of scene.debug?.highlightGroups ?? []) {
+    const color = parseHighlightColor(group.color);
+    addHighlightSet(colors, color, group);
+    for (const entityId of group.entityIds ?? []) {
+      colors.set(entityId, color);
+    }
+  }
+  return colors;
+}
+
+function addHighlightSet(
+  colors: Map<string, THREE.Color>,
+  color: THREE.Color,
+  highlights?: { faces?: string[]; edges?: string[]; vertices?: string[] }
+): void {
+  for (const entityId of [
+    ...(highlights?.faces ?? []),
+    ...(highlights?.edges ?? []),
+    ...(highlights?.vertices ?? [])
+  ]) {
+    colors.set(entityId, color);
+  }
+}
+
+function parseHighlightColor(value: string | undefined): THREE.Color {
+  if (!value) {
+    return highlightColor.clone();
+  }
+  try {
+    return new THREE.Color(value);
+  } catch {
+    return highlightColor.clone();
+  }
 }
 
 function entityIdForHitObject(object: THREE.Object3D | undefined): string | undefined {
