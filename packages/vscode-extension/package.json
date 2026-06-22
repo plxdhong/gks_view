@@ -2,7 +2,7 @@
   "name": "geometry-kernel-workbench",
   "displayName": "Geometry Kernel Workbench",
   "description": "Inspect GKS geometry snapshots with topology trees, properties, compare views, and Three.js rendering.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "gk-workbench",
   "license": "UNLICENSED",
   "icon": "resources/icon.png",
@@ -55,7 +55,9 @@
     "onCustomEditor:gkWorkbench.gkcase",
     "onCustomEditor:gkWorkbench.gkscene",
     "onCustomEditor:gkWorkbench.gkcompare",
+    "onCustomEditor:gkWorkbench.gkrun",
     "onCommand:gkWorkbench.openSnapshot",
+    "onCommand:gkWorkbench.openLatestRun",
     "onCommand:gkWorkbench.revealEntity"
   ],
   "main": "./dist/extension.js",
@@ -64,6 +66,10 @@
       {
         "command": "gkWorkbench.openSnapshot",
         "title": "Geometry: Open Snapshot"
+      },
+      {
+        "command": "gkWorkbench.openLatestRun",
+        "title": "Geometry: Open Latest Test Run"
       },
       {
         "command": "gkWorkbench.openCompare",
@@ -109,6 +115,16 @@
         "selector": [
           {
             "filenamePattern": "*.gkcompare.json"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "gkWorkbench.gkrun",
+        "displayName": "Geometry Workbench Run",
+        "selector": [
+          {
+            "filenamePattern": "*.gkrun.json"
           }
         ],
         "priority": "default"

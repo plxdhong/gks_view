@@ -146,6 +146,26 @@ button {
   color: #ffffff;
 }
 
+.control-help-button[aria-expanded="true"] {
+  border: 1px solid #c8ccc4;
+  border-radius: 6px;
+  background: #fff3d8;
+  color: #2f352e;
+}
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .toolbar-icon-button:focus-visible {
   outline: 2px solid #d49638;
   outline-offset: -2px;
@@ -304,6 +324,39 @@ button {
   padding: 0 9px;
   background: #ffffff;
   color: #202124;
+}
+
+.help-popover {
+  z-index: 20;
+  position: absolute;
+  top: 54px;
+  right: 16px;
+  width: min(320px, calc(100vw - 32px));
+  border: 1px solid #c8ccc4;
+  border-radius: 6px;
+  padding: 10px 12px 12px;
+  background: rgba(251, 251, 248, 0.97);
+  box-shadow: 0 14px 34px rgba(38, 42, 36, 0.16);
+}
+
+.help-popover-title {
+  margin-bottom: 8px;
+  color: #1f2937;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.help-grid {
+  display: grid;
+  grid-template-columns: minmax(78px, auto) minmax(0, 1fr);
+  gap: 6px 12px;
+  color: #4d554b;
+  font-size: 12px;
+}
+
+.help-grid span:nth-child(odd) {
+  color: #202124;
+  font-weight: 800;
 }
 
 .left-panel,
@@ -514,6 +567,12 @@ button {
   flex: 0 0 auto;
 }
 
+.run-case-panel {
+  flex: 0 0 auto;
+  max-height: min(260px, 36vh);
+  overflow: hidden;
+}
+
 .topology-panel,
 .property-panel {
   flex: 1 1 auto;
@@ -532,12 +591,23 @@ button {
   padding: 8px;
 }
 
+.run-case-list {
+  display: flex;
+  max-height: calc(min(260px, 36vh) - 34px);
+  flex-direction: column;
+  gap: 4px;
+  overflow: auto;
+  padding: 8px;
+}
+
 .timeline-item,
+.run-case-item,
 .tree-item,
 .tree-toggle-button,
 .tree-visibility-button,
 .property-locate-button,
-.annotation {
+.annotation,
+.highlight-group {
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
@@ -552,21 +622,65 @@ button {
   font-size: 12px;
 }
 
+.run-case-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 8px;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 8px;
+  border-left: 4px solid #9aa29a;
+  font-size: 12px;
+}
+
+.run-case-item[data-status="passed"] {
+  border-left-color: #2f9b5f;
+}
+
+.run-case-item[data-status="failed"] {
+  border-left-color: #d44f45;
+}
+
+.run-case-item[data-status="running"] {
+  border-left-color: #d49638;
+}
+
+.run-case-title,
+.run-case-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.run-case-title {
+  color: #202124;
+  font-weight: 800;
+}
+
+.run-case-meta {
+  color: #687065;
+  font-size: 11px;
+}
+
 .annotation {
   width: 100%;
 }
 
 .timeline-item:hover,
+.run-case-item:hover,
 .tree-item:hover,
 .tree-toggle-button:hover,
 .tree-visibility-button:hover,
 .property-locate-button:hover,
-.annotation:hover {
+.annotation:hover,
+.highlight-group:hover {
   border-color: #c8ccc4;
   background: #f0f1ed;
 }
 
 .timeline-item.is-active,
+.run-case-item.is-active,
 .tree-row.is-selected .tree-item {
   border-color: #d49638;
   background: #fff3d8;
@@ -830,6 +944,29 @@ button {
   font-size: 12px;
 }
 
+.highlight-group {
+  position: relative;
+  display: block;
+  width: calc(100% - 24px);
+  min-height: 28px;
+  margin: 6px 12px;
+  padding: 6px 8px 6px 26px;
+  font-size: 12px;
+}
+
+.highlight-group::before {
+  position: absolute;
+  top: 50%;
+  left: 9px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(32, 33, 36, 0.25);
+  border-radius: 50%;
+  background: var(--highlight-group-color, #d9a441);
+  content: "";
+  transform: translateY(-50%);
+}
+
 .empty-state,
 .error-state {
   margin: 12px;
@@ -850,6 +987,31 @@ button {
 .fatal-error {
   margin: 16px;
   white-space: pre-wrap;
+}
+
+.update-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 40;
+  max-width: min(260px, calc(100vw - 36px));
+  border: 1px solid rgba(73, 82, 70, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: rgba(251, 251, 248, 0.88);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  color: #565c54;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.update-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @keyframes tree-reveal-pulse {

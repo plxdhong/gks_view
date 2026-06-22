@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { GksFileLoader } from "../gks/GksFileLoader";
 import { WebviewHtmlProvider } from "../webview/WebviewHtmlProvider";
 import { trackWorkbenchPanel, wireWorkbenchPanelMessages } from "../webview/WorkbenchPanelRegistry";
+import { watchWorkbenchJsonFiles } from "./watchWorkbenchJsonFiles";
 
 export class GkCompareEditorProvider implements vscode.CustomReadonlyEditorProvider {
   static readonly viewType = "gkWorkbench.gkcompare";
@@ -41,7 +42,8 @@ export class GkCompareEditorProvider implements vscode.CustomReadonlyEditorProvi
       ]
     };
     webviewPanel.webview.html = this.htmlProvider.render(webviewPanel.webview, initialData);
-    trackWorkbenchPanel(webviewPanel);
+    trackWorkbenchPanel(webviewPanel, { mode: "compare", resourceUri: document.uri.toString() });
+    watchWorkbenchJsonFiles(webviewPanel, document.uri, "**/*.json", () => this.loader.loadCompare(document.uri));
     wireWorkbenchPanelMessages(webviewPanel, async (message) => {
       if (message?.type !== "requestScene") {
         return undefined;
@@ -56,4 +58,3 @@ export class GkCompareEditorProvider implements vscode.CustomReadonlyEditorProvi
     });
   }
 }
-

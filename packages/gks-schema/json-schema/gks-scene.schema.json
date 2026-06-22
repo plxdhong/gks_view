@@ -183,9 +183,79 @@
           }
         }
       }
+    },
+    "debug": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "algorithm": {
+          "type": "string"
+        },
+        "step": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "highlights": {
+          "$ref": "#/$defs/highlightSet"
+        },
+        "highlightGroups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "groupId": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "faces": {
+                "$ref": "#/$defs/entityIdList"
+              },
+              "edges": {
+                "$ref": "#/$defs/entityIdList"
+              },
+              "vertices": {
+                "$ref": "#/$defs/entityIdList"
+              },
+              "entityIds": {
+                "$ref": "#/$defs/entityIdList"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
+    "entityIdList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "highlightSet": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "faces": {
+          "$ref": "#/$defs/entityIdList"
+        },
+        "edges": {
+          "$ref": "#/$defs/entityIdList"
+        },
+        "vertices": {
+          "$ref": "#/$defs/entityIdList"
+        }
+      }
+    },
     "vec3": {
       "type": "array",
       "prefixItems": [
@@ -244,4 +314,3 @@
     }
   }
 }
-
