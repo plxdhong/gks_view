@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Prevented unintended depth clipping in orthographic views after rotating, focusing, or reloading geometry, while preserving framing and front-surface picking.
+
 ## 0.1.5
 
 ### Changed
