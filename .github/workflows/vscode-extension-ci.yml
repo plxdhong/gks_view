@@ -43,5 +43,8 @@ jobs:
       - name: Build packages
         run: bun run build
 
+      - name: Verify camera clipping
+        run: bun run verify:camera
+
       - name: Verify mock adapter
         run: bun run verify:adapter
