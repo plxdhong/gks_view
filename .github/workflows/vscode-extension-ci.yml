@@ -46,5 +46,8 @@ jobs:
       - name: Verify camera clipping
         run: bun run verify:camera
 
+      - name: Verify PS BRep and facet loading
+        run: bun run verify:ps
+
       - name: Verify mock adapter
         run: bun run verify:adapter

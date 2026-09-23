@@ -5,6 +5,7 @@ import { AdapterProcessManager } from "./adapterBridge/AdapterProcessManager";
 import { GkCaseEditorProvider } from "./customEditors/GkCaseEditorProvider";
 import { GkCompareEditorProvider } from "./customEditors/GkCompareEditorProvider";
 import { GkRunEditorProvider } from "./customEditors/GkRunEditorProvider";
+import { GkPsEditorProvider } from "./customEditors/GkPsEditorProvider";
 import { GkSceneEditorProvider } from "./customEditors/GkSceneEditorProvider";
 import { GksFileLoader, type WorkbenchInitialData } from "./gks/GksFileLoader";
 import { openAdapterWorkbench } from "./webview/AdapterWorkbenchPanel";
@@ -22,6 +23,7 @@ export function activate(context: vscode.ExtensionContext): void {
     GkCaseEditorProvider.register(context),
     GkCompareEditorProvider.register(context),
     GkRunEditorProvider.register(context),
+    GkPsEditorProvider.register(context),
     GkSceneEditorProvider.register(context),
     createRunIndexWatcher(runLoader),
     vscode.commands.registerCommand("gkWorkbench.openSnapshot", async (uri?: vscode.Uri) => {
@@ -117,7 +119,7 @@ async function pickGksFile(title: string): Promise<vscode.Uri | undefined> {
     canSelectFolders: false,
     canSelectMany: false,
     filters: {
-      "GKS Files": ["gkcase.json", "gkscene.json", "gkcompare.json", "gkrun.json"],
+      "Geometry Files": ["gkcase.json", "gkscene.json", "gkcompare.json", "gkrun.json", "brep.json", "facet.json"],
       "JSON": ["json"]
     }
   });
@@ -126,6 +128,9 @@ async function pickGksFile(title: string): Promise<vscode.Uri | undefined> {
 
 function viewTypeForUri(uri: vscode.Uri): string {
   const path = uri.path.toLowerCase();
+  if (path.endsWith("_brep.json") || path.endsWith("_facet.json")) {
+    return GkPsEditorProvider.viewType;
+  }
   if (path.endsWith(".gkcase.json")) {
     return GkCaseEditorProvider.viewType;
   }

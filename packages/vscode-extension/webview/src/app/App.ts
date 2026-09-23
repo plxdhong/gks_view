@@ -166,6 +166,8 @@ export class App {
     const selected = this.selectedEntityId ? this.entityIndex.get(this.selectedEntityId) : undefined;
     this.mustQuery(".brand-meta").textContent = this.titleText();
     this.renderRunCases();
+    this.mustQuery<HTMLElement>(".timeline-panel").hidden = this.data.mode === "ps";
+    this.mustQuery<HTMLElement>(".debug-panel").hidden = this.data.mode === "ps";
     this.timeline.render(this.data.snapshots, this.data.activeSnapshotId);
     this.renderTopologyTree();
     this.propertyPanel.render(this.scene, selected);

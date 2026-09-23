@@ -54,6 +54,7 @@
   "activationEvents": [
     "onCustomEditor:gkWorkbench.gkcase",
     "onCustomEditor:gkWorkbench.gkscene",
+    "onCustomEditor:gkWorkbench.ps",
     "onCustomEditor:gkWorkbench.gkcompare",
     "onCustomEditor:gkWorkbench.gkrun",
     "onCommand:gkWorkbench.openSnapshot",
@@ -106,6 +107,15 @@
           {
             "filenamePattern": "*.gkscene.json"
           }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "gkWorkbench.ps",
+        "displayName": "PS BRep and Facet",
+        "selector": [
+          { "filenamePattern": "*_brep.json" },
+          { "filenamePattern": "*_facet.json" }
         ],
         "priority": "default"
       },

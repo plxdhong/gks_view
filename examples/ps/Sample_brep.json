@@ -1,0 +1,86 @@
+{
+  "format": "PS BRep",
+  "partitions": [
+    {
+      "tag": 1,
+      "name": "Example partition",
+      "tolerance": 1e-6,
+      "bodies": [
+        {
+          "tag": 100,
+          "bodyType": "sheet",
+          "groups": [
+            { "tag": 110, "name": "example group" }
+          ],
+          "referenceInstances": [
+            { "tag": 120, "target": 100 }
+          ],
+          "constructionSurfaces": [],
+          "constructionCurves": [],
+          "constructionPoints": [],
+          "isolatedVertices": [
+            { "tag": 101, "geometry": { "point": ["0", "0", "0.8"] } }
+          ],
+          "lumps": [
+            {
+              "tag": 200,
+              "shells": [
+                {
+                  "tag": 300,
+                  "faces": [
+                    {
+                      "tag": 400,
+                      "geometry": { "surface": "plane", "normal": [0, 0, 1] },
+                      "loops": [
+                        {
+                          "tag": 500,
+                          "coedges": [
+                            {
+                              "tag": 600,
+                              "geometry": { "sense": "forward" },
+                              "edge": { "tag": 700, "geometry": { "curve": "line" } }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "edges": [
+                {
+                  "tag": 700,
+                  "geometry": { "curve": "line", "length": 1 },
+                  "startVertex": { "tag": 701, "geometry": { "point": ["0", "0", "0"] } },
+                  "endVertex": { "tag": 702, "geometry": { "point": ["1", "0", "0"] } }
+                }
+              ],
+              "wireEdges": []
+            }
+          ]
+        }
+      ],
+      "assemblies": [
+        {
+          "tag": 800,
+          "constructionSurfaces": [],
+          "constructionCurves": [],
+          "constructionPoints": [],
+          "instances": [
+            {
+              "tag": 801,
+              "subModel": { "bodyTag": 100 },
+              "transform": { "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }
+            }
+          ]
+        }
+      ],
+      "orphanGeometies": [
+        { "tag": 900, "type": "line" }
+      ],
+      "transforms": [
+        { "tag": 901, "matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }
+      ]
+    }
+  ]
+}

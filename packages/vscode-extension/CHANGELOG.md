@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Open paired PS `*_brep.json` and `*_facet.json` files with a recursive topology tree, raw BRep properties, and selectable facet/vertex geometry.
+
 ### Fixed
 
 - Prevented unintended depth clipping in orthographic views after rotating, focusing, or reloading geometry, while preserving framing and front-surface picking.

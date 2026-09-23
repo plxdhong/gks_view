@@ -39,8 +39,11 @@ export class PropertyPanel {
 
     const table = document.createElement("div");
     table.className = "property-table";
+    const identity = scene.psTree
+      ? { entityId: entity.entityId, kind: entity.kind, kernelTag: entity.kernelTag, sourceKernel: entity.sourceKernel }
+      : entity;
     const propertyGroups = {
-      identity: entity,
+      identity,
       ...(scene.properties?.[entity.entityId] ?? {})
     };
     for (const [groupName, groupValue] of Object.entries(propertyGroups)) {
@@ -78,7 +81,9 @@ function appendRows(host: HTMLElement, value: Record<string, unknown>): void {
 
 function formatValue(value: unknown): string {
   if (Array.isArray(value)) {
-    return value.map((item) => typeof item === "number" ? Number(item.toFixed(4)).toString() : String(item)).join(", ");
+    return value.map((item) => typeof item === "number"
+      ? Number(item.toFixed(4)).toString()
+      : item !== null && typeof item === "object" ? JSON.stringify(item) : String(item)).join(", ");
   }
   if (value && typeof value === "object") {
     return JSON.stringify(value);

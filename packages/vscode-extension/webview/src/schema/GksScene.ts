@@ -6,13 +6,14 @@ import type {
   GksCompareSceneRef,
   GksRun,
   GksRunCaseRef,
+  PsTreeNode,
   GksScene
 } from "@gk-workbench/gks-schema";
 
-export type { EntityIdentity, EntityKind, GksCase, GksCompare, GksCompareSceneRef, GksRun, GksRunCaseRef, GksScene };
+export type { EntityIdentity, EntityKind, GksCase, GksCompare, GksCompareSceneRef, GksRun, GksRunCaseRef, PsTreeNode, GksScene };
 
 export interface WorkbenchInitialData {
-  mode: "case" | "scene" | "compare" | "run" | "adapter";
+  mode: "case" | "scene" | "compare" | "run" | "adapter" | "ps";
   case?: GksCase;
   caseBasePath?: string;
   compare?: GksCompare;
@@ -69,6 +70,15 @@ type EdgeEntity = GksScene["topology"]["edges"][number];
 
 export function buildEntityIndex(scene: GksScene): Map<string, EntityIdentity> {
   const index = new Map<string, EntityIdentity>();
+  if (scene.psTree) {
+    const pending: PsTreeNode[] = [...scene.psTree];
+    while (pending.length) {
+      const node = pending.pop()!;
+      index.set(node.entityId, node);
+      pending.push(...node.children);
+    }
+    return index;
+  }
   for (const bucket of [
     scene.topology.bodies,
     scene.topology.regions,
@@ -87,6 +97,9 @@ export function buildEntityIndex(scene: GksScene): Map<string, EntityIdentity> {
 }
 
 export function childrenForEntity(scene: GksScene, entity: EntityIdentity): EntityIdentity[] {
+  if (scene.psTree) {
+    return (entity as PsTreeNode).children ?? [];
+  }
   if (entity.kind === "body") {
     const body = entity as BodyEntity;
     return scene.topology.regions.filter((region) => body.regions?.includes(region.entityId));
@@ -169,6 +182,9 @@ export function descendantIdsForEntity(scene: GksScene, entityId: string): strin
 
 export function kindFromEntityId(entityId: string): EntityKind | undefined {
   const [kind] = entityId.split(":");
+  if (entityId.includes(":ps/")) {
+    return psKinds.has(kind as EntityKind) ? kind as EntityKind : undefined;
+  }
   if (
     kind === "body" ||
     kind === "region" ||
@@ -183,3 +199,9 @@ export function kindFromEntityId(entityId: string): EntityKind | undefined {
   }
   return undefined;
 }
+
+const psKinds = new Set<EntityKind>([
+  "body", "face", "loop", "coedge", "edge", "vertex", "model", "collection", "partition",
+  "assembly", "instance", "lump", "group", "referenceInstance", "constructionSurface",
+  "constructionCurve", "constructionPoint", "orphanGeometry", "transform", "object"
+]);

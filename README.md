@@ -21,7 +21,8 @@ details.
 
 ## Highlights
 
-- Open `.gkcase.json`, `.gkscene.json`, `.gkcompare.json`, and `.gkrun.json`
+- Open `.gkcase.json`, `.gkscene.json`, `.gkcompare.json`, `.gkrun.json`, and paired
+  PS `*_brep.json` / `*_facet.json`
   artifacts in a dedicated VS Code workbench.
 - Inspect topology hierarchies, entity properties, kernel tags, and debug
   metadata without leaving the viewer.
@@ -64,6 +65,14 @@ Useful development URLs:
 - `http://127.0.0.1:5173/?compare=1` opens the split compare mock.
 - `http://127.0.0.1:5173/?case=occ/OCCBox.Case_001/index.gkcase.json` opens
   the generated OCC example after `bun run occ:example`.
+- `http://127.0.0.1:5173/?ps=ps/Sample_brep.json` opens the paired PS sample.
+
+Open either PS file in VS Code to inspect its BRep hierarchy and facet geometry.
+Object lists form collapsible tree nodes; other BRep fields, including analytic
+geometry and transforms, appear in Properties. Facet faces are triangle triples,
+facet curves are polylines, and `vertex.geometry.point` supplies the vertex markers.
+The editor reloads when either file changes and can show a BRep or facet on its
+own when the companion has not been produced yet.
 
 Useful mock artifacts:
 
