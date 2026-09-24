@@ -6,6 +6,11 @@
 
 - Open paired PS `*_brep.json` and `*_facet.json` files with a recursive topology tree, raw BRep properties, and selectable facet/vertex geometry.
 
+### Changed
+
+- Show array entries directly under their parent, place shared edges below referencing coedges, and deduplicate wire edges.
+- Resolve PS face, coedge, edge, and vertex geometry from the owning body's `entGeometries` lists, including vertex markers from point coordinates.
+
 ### Fixed
 
 - Prevented unintended depth clipping in orthographic views after rotating, focusing, or reloading geometry, while preserving framing and front-surface picking.

@@ -301,7 +301,7 @@ export class TopologyTreePanel {
 
 function shortKind(kind: string): string {
   const labels: Record<string, string> = {
-    model: "model", collection: "list", partition: "part", assembly: "asm",
+    model: "model", partition: "part", assembly: "asm",
     instance: "inst", referenceInstance: "ref", constructionSurface: "surface",
     constructionCurve: "curve", constructionPoint: "point", orphanGeometry: "geom",
     transform: "xform", object: "object"

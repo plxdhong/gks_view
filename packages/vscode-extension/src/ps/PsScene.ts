@@ -1,6 +1,8 @@
 import type { EntityKind, EntityPropertiesMap, GksScene, PsTreeNode, Vec3 } from "@gk-workbench/gks-schema";
 
 type JsonObject = Record<string, unknown>;
+type GeometryGroup = "points" | "curves" | "surfaces";
+type GeometryIndex = Record<GeometryGroup, Map<string, JsonObject>>;
 
 const listKinds: Record<string, EntityKind> = {
   partitions: "partition",
@@ -69,6 +71,7 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
   const bodiesByTag = new Map<string, PsTreeNode[]>();
   const facesByBody = new WeakMap<PsTreeNode, Map<string, PsTreeNode>>();
   const edgesByBody = new WeakMap<PsTreeNode, Map<string, PsTreeNode>>();
+  const geometriesByBody = new WeakMap<PsTreeNode, GeometryIndex>();
 
   const makeNode = (kind: EntityKind, path: string, label: string, data: JsonObject): PsTreeNode => {
     const tag = data.tag;
@@ -101,6 +104,27 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
       matching.push(node);
       bodiesByTag.set(tag, matching);
     }
+    if (kind === "body") {
+      const geometryIndex: GeometryIndex = {
+        points: new Map(), curves: new Map(), surfaces: new Map()
+      };
+      const entGeometries = isObject(data.entGeometries) ? data.entGeometries : undefined;
+      for (const group of ["points", "curves", "surfaces"] as const) {
+        const entries = entGeometries?.[group];
+        if (Array.isArray(entries)) {
+          for (const entry of entries) {
+            if (!isObject(entry)) {
+              continue;
+            }
+            const key = tagKey(entry.tag ?? (isObject(entry.geometry) ? entry.geometry.tag : undefined));
+            if (key !== undefined) {
+              geometryIndex[group].set(key, entry);
+            }
+          }
+        }
+      }
+      geometriesByBody.set(node, geometryIndex);
+    }
     if (body && tag !== undefined && (kind === "face" || kind === "edge")) {
       const index = kind === "face" ? facesByBody : edgesByBody;
       const byTag = index.get(body) ?? new Map<string, PsTreeNode>();
@@ -109,34 +133,106 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
       }
       index.set(body, byTag);
     }
-    if (kind === "vertex") {
-      const geometry = isObject(data.geometry) ? data.geometry : undefined;
-      const position = pointCoordinates(geometry?.point);
-      if (position) {
-        vertexPoints.push({ entityId: node.entityId, position });
-      }
-    }
+    const resolvedGeometry = resolveGeometry(data.geometry, kind, body);
 
     for (const [key, value] of Object.entries(data)) {
       if (Array.isArray(value) && value.length > 0 && value.every(isObject)) {
-        const group = makeNode("collection", `${path}/${key}`, `${key} (${value.length})`, { count: value.length });
-        group.children = value.map((item, index) => {
+        node.children.push(...value.map((item, index) => {
           const childKind = listKinds[key] ?? "object";
           const childLabel = childKind === "object" ? `${key} [${index}]` : childKind;
           return parseNode(item, childKind, `${path}/${key}/${index}`, childLabel, body);
-        });
-        node.children.push(group);
-      } else if (isObject(value) && kind === "coedge" && key === "edge") {
-        node.children.push(parseNode(value, "edge", `${path}/${key}`, key, body));
+        }));
       } else if (isObject(value) && kind === "edge" && (key === "startVertex" || key === "endVertex")) {
         node.children.push(parseNode(value, "vertex", `${path}/${key}`, key, body));
+      } else if (key === "geometry" && resolvedGeometry !== undefined) {
+        fields.geometry = resolvedGeometry;
       } else {
-        // Geometry, transforms, attributes, and scalar arrays remain visible as original properties.
         fields[key] = value;
       }
     }
+    if (kind === "lump") {
+      linkLumpEdges(node, body);
+    }
     return node;
   };
+
+  function resolveGeometry(reference: unknown, kind: EntityKind, body?: PsTreeNode): unknown {
+    const group: GeometryGroup | undefined = kind === "vertex" ? "points"
+      : kind === "face" ? "surfaces"
+      : kind === "edge" || kind === "coedge" ? "curves"
+      : undefined;
+    if (!group || !body) {
+      return reference;
+    }
+    const details = isObject(reference) ? reference : undefined;
+    if (group === "points" && pointCoordinates(details?.point)) {
+      return reference;
+    }
+    const geometryTag = tagKey(details
+      ? details.tag ?? details.geometryTag ?? details.pointTag ?? details.curveTag ?? details.surfaceTag ?? details.point
+      : reference);
+    const record = geometryTag === undefined ? undefined : geometriesByBody.get(body)?.[group].get(geometryTag);
+    if (!record) {
+      return reference;
+    }
+    return { ...(details ?? {}), ...record, ...(isObject(record.geometry) ? record.geometry : {}) };
+  }
+
+  function linkLumpEdges(lump: PsTreeNode, body?: PsTreeNode): void {
+    const edges = lump.children.filter((child) => child.kind === "edge");
+    const canonical = new Map<string, PsTreeNode>();
+    // Prefer the full edge record in edges when wireEdges repeats the same tag.
+    for (const edge of [...edges].sort((left, right) =>
+      Number(right.entityId.includes("/edges/")) - Number(left.entityId.includes("/edges/")))) {
+      const key = tagKey(edge.kernelTag);
+      if (key !== undefined && !canonical.has(key)) {
+        canonical.set(key, edge);
+      }
+    }
+    lump.children = lump.children.filter((child) => {
+      const key = tagKey(child.kernelTag);
+      return child.kind !== "edge" || key === undefined || canonical.get(key) === child;
+    });
+    if (body) {
+      const byTag = edgesByBody.get(body) ?? new Map<string, PsTreeNode>();
+      for (const [key, edge] of canonical) {
+        byTag.set(key, edge);
+      }
+      edgesByBody.set(body, byTag);
+    }
+
+    const coedges: PsTreeNode[] = [];
+    const pending = [...lump.children];
+    while (pending.length) {
+      const child = pending.pop()!;
+      if (child.kind === "coedge") {
+        coedges.push(child);
+      }
+      pending.push(...child.children);
+    }
+    const referenced = new Set<PsTreeNode>();
+    for (const coedge of coedges) {
+      const fields = properties[coedge.entityId]?.data;
+      const reference = isObject(fields) ? fields.edge : undefined;
+      const key = tagKey(isObject(reference) ? reference.tag : reference);
+      let edge = key === undefined ? undefined : canonical.get(key);
+      if (!edge && isObject(reference)) {
+        const coedgePath = coedge.entityId.split(":ps/")[1];
+        edge = parseNode(reference, "edge", `${coedgePath}/edge`, "edge", body);
+        if (key !== undefined) {
+          canonical.set(key, edge);
+          if (body) {
+            edgesByBody.get(body)?.set(key, edge);
+          }
+        }
+      }
+      if (edge) {
+        coedge.children.push(edge);
+        referenced.add(edge);
+      }
+    }
+    lump.children = lump.children.filter((child) => !referenced.has(child));
+  }
 
   const root = parseNode(isObject(brep) ? brep : {}, "model", "root", title);
 
@@ -193,9 +289,7 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
           }
         }
         if (missing?.length) {
-          const group = makeNode("collection", `facetBodies/${bodyIndex}/${key}`, `facet ${key} (${missing.length})`, { count: missing.length });
-          group.children = missing;
-          body.children.push(group);
+          body.children.push(...missing);
         }
       };
 
@@ -203,9 +297,32 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
       addFacetNodes("curves", "edge");
     }
     if (unpairedBodies.length) {
-      const group = makeNode("collection", "facetBodies", `facet bodies (${unpairedBodies.length})`, { count: unpairedBodies.length });
-      group.children = unpairedBodies;
-      root.children.push(group);
+      root.children.push(...unpairedBodies);
+    }
+  }
+
+  const reachable = new Set<string>();
+  const pending = [root];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (reachable.has(node.entityId)) {
+      continue;
+    }
+    reachable.add(node.entityId);
+    if (node.kind === "vertex") {
+      const fields = properties[node.entityId]?.data;
+      const geometry = isObject(fields) && isObject(fields.geometry) ? fields.geometry : undefined;
+      const nested = isObject(geometry?.geometry) ? geometry.geometry : undefined;
+      const position = pointCoordinates(geometry?.point ?? nested?.point);
+      if (position) {
+        vertexPoints.push({ entityId: node.entityId, position });
+      }
+    }
+    pending.push(...node.children);
+  }
+  for (const id of Object.keys(properties)) {
+    if (!reachable.has(id)) {
+      delete properties[id];
     }
   }
 

@@ -71,11 +71,14 @@ type EdgeEntity = GksScene["topology"]["edges"][number];
 export function buildEntityIndex(scene: GksScene): Map<string, EntityIdentity> {
   const index = new Map<string, EntityIdentity>();
   if (scene.psTree) {
-    const pending: PsTreeNode[] = [...scene.psTree];
+    const pending: PsTreeNode[] = [...scene.psTree].reverse();
     while (pending.length) {
       const node = pending.pop()!;
+      if (index.has(node.entityId)) {
+        continue;
+      }
       index.set(node.entityId, node);
-      pending.push(...node.children);
+      pending.push(...[...node.children].reverse());
     }
     return index;
   }
@@ -180,6 +183,20 @@ export function descendantIdsForEntity(scene: GksScene, entityId: string): strin
   return descendants;
 }
 
+export function effectiveHiddenIdsForPsScene(scene: GksScene, hiddenEntityIds: ReadonlySet<string>): Set<string> {
+  const visible = new Set<string>();
+  const pending = [...(scene.psTree ?? [])];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (hiddenEntityIds.has(node.entityId) || visible.has(node.entityId)) {
+      continue;
+    }
+    visible.add(node.entityId);
+    pending.push(...node.children);
+  }
+  return new Set([...buildEntityIndex(scene).keys()].filter((entityId) => !visible.has(entityId)));
+}
+
 export function kindFromEntityId(entityId: string): EntityKind | undefined {
   const [kind] = entityId.split(":");
   if (entityId.includes(":ps/")) {
@@ -201,7 +218,7 @@ export function kindFromEntityId(entityId: string): EntityKind | undefined {
 }
 
 const psKinds = new Set<EntityKind>([
-  "body", "face", "loop", "coedge", "edge", "vertex", "model", "collection", "partition",
+  "body", "face", "loop", "coedge", "edge", "vertex", "model", "partition",
   "assembly", "instance", "lump", "group", "referenceInstance", "constructionSurface",
   "constructionCurve", "constructionPoint", "orphanGeometry", "transform", "object"
 ]);

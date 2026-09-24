@@ -18,8 +18,22 @@
           "constructionSurfaces": [],
           "constructionCurves": [],
           "constructionPoints": [],
+          "entGeometries": {
+            "points": [
+              { "tag": 1001, "point": ["0", "0", "0.8"] },
+              { "tag": 1002, "point": ["0", "0", "0"] },
+              { "tag": 1003, "point": ["1", "0", "0"] }
+            ],
+            "curves": [
+              { "tag": 2001, "curve": "line", "length": 1 },
+              { "tag": 2002, "curve": "line", "length": 1.2 }
+            ],
+            "surfaces": [
+              { "tag": 3001, "surface": "plane", "normal": [0, 0, 1] }
+            ]
+          },
           "isolatedVertices": [
-            { "tag": 101, "geometry": { "point": ["0", "0", "0.8"] } }
+            { "tag": 101, "geometry": 1001 }
           ],
           "lumps": [
             {
@@ -30,15 +44,20 @@
                   "faces": [
                     {
                       "tag": 400,
-                      "geometry": { "surface": "plane", "normal": [0, 0, 1] },
+                      "geometry": 3001,
                       "loops": [
                         {
                           "tag": 500,
                           "coedges": [
                             {
                               "tag": 600,
-                              "geometry": { "sense": "forward" },
-                              "edge": { "tag": 700, "geometry": { "curve": "line" } }
+                              "geometry": 2001,
+                              "edge": 700
+                            },
+                            {
+                              "tag": 601,
+                              "geometry": { "tag": 2001 },
+                              "edge": 700
                             }
                           ]
                         }
@@ -50,12 +69,15 @@
               "edges": [
                 {
                   "tag": 700,
-                  "geometry": { "curve": "line", "length": 1 },
-                  "startVertex": { "tag": 701, "geometry": { "point": ["0", "0", "0"] } },
-                  "endVertex": { "tag": 702, "geometry": { "point": ["1", "0", "0"] } }
+                  "geometry": 2001,
+                  "startVertex": { "tag": 701, "geometry": 1002 },
+                  "endVertex": { "tag": 702, "geometry": { "tag": 1003 } }
                 }
               ],
-              "wireEdges": []
+              "wireEdges": [
+                { "tag": 700, "geometry": 2001 },
+                { "tag": 703, "geometry": 2002 }
+              ]
             }
           ]
         }

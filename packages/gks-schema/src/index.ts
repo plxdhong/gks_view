@@ -8,7 +8,6 @@ export type EntityKind =
   | "edge"
   | "vertex"
   | "model"
-  | "collection"
   | "partition"
   | "assembly"
   | "instance"

@@ -68,9 +68,12 @@ Useful development URLs:
 - `http://127.0.0.1:5173/?ps=ps/Sample_brep.json` opens the paired PS sample.
 
 Open either PS file in VS Code to inspect its BRep hierarchy and facet geometry.
-Object lists form collapsible tree nodes; other BRep fields, including analytic
-geometry and transforms, appear in Properties. Facet faces are triangle triples,
-facet curves are polylines, and `vertex.geometry.point` supplies the vertex markers.
+Objects inside lists appear directly under their parent in the topology tree.
+Coedges show their referenced edges, and repeated wire edges appear only once.
+Other BRep fields, including transforms, appear in Properties. Face, coedge,
+edge, and vertex geometry references resolve through their body's
+`entGeometries` lists. Facet faces are triangle triples, facet curves are
+polylines, and point geometry supplies the vertex markers.
 The editor reloads when either file changes and can show a BRep or facet on its
 own when the companion has not been produced yet.
 

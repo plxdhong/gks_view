@@ -1,5 +1,5 @@
 import type { EntityIdentity, GksScene, WorkbenchInitialData, WorkbenchRunSceneResult } from "../schema/GksScene";
-import { buildEntityIndex, descendantIdsForEntity } from "../schema/GksScene";
+import { buildEntityIndex, descendantIdsForEntity, effectiveHiddenIdsForPsScene } from "../schema/GksScene";
 import { PropertyPanel } from "../panels/PropertyPanel";
 import { SnapshotTimeline } from "../panels/SnapshotTimeline";
 import { TopologyTreePanel } from "../panels/TopologyTreePanel";
@@ -842,6 +842,9 @@ export class App {
   }
 
   private effectiveHiddenEntityIdsForScene(scene: GksScene): Set<string> {
+    if (scene.psTree) {
+      return effectiveHiddenIdsForPsScene(scene, this.hiddenEntityIds);
+    }
     const effectiveHidden = new Set<string>();
     for (const entityId of this.hiddenEntityIds) {
       effectiveHidden.add(entityId);
