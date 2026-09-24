@@ -6,13 +6,14 @@ import type {
   GksCompareSceneRef,
   GksRun,
   GksRunCaseRef,
+  PsTreeNode,
   GksScene
 } from "@gk-workbench/gks-schema";
 
-export type { EntityIdentity, EntityKind, GksCase, GksCompare, GksCompareSceneRef, GksRun, GksRunCaseRef, GksScene };
+export type { EntityIdentity, EntityKind, GksCase, GksCompare, GksCompareSceneRef, GksRun, GksRunCaseRef, PsTreeNode, GksScene };
 
 export interface WorkbenchInitialData {
-  mode: "case" | "scene" | "compare" | "run" | "adapter";
+  mode: "case" | "scene" | "compare" | "run" | "adapter" | "ps";
   case?: GksCase;
   caseBasePath?: string;
   compare?: GksCompare;
@@ -69,6 +70,22 @@ type EdgeEntity = GksScene["topology"]["edges"][number];
 
 export function buildEntityIndex(scene: GksScene): Map<string, EntityIdentity> {
   const index = new Map<string, EntityIdentity>();
+  if (scene.psTree) {
+    const pending: PsTreeNode[] = [...scene.psTree].reverse();
+    const visited = new WeakSet<PsTreeNode>();
+    while (pending.length) {
+      const node = pending.pop()!;
+      if (visited.has(node)) {
+        continue;
+      }
+      visited.add(node);
+      if (!index.has(node.entityId)) {
+        index.set(node.entityId, node);
+      }
+      pending.push(...[...node.children].reverse());
+    }
+    return index;
+  }
   for (const bucket of [
     scene.topology.bodies,
     scene.topology.regions,
@@ -87,6 +104,9 @@ export function buildEntityIndex(scene: GksScene): Map<string, EntityIdentity> {
 }
 
 export function childrenForEntity(scene: GksScene, entity: EntityIdentity): EntityIdentity[] {
+  if (scene.psTree) {
+    return (entity as PsTreeNode).children ?? [];
+  }
   if (entity.kind === "body") {
     const body = entity as BodyEntity;
     return scene.topology.regions.filter((region) => body.regions?.includes(region.entityId));
@@ -123,6 +143,24 @@ export function childrenForEntity(scene: GksScene, entity: EntityIdentity): Enti
 
 export function buildEntityParentIndex(scene: GksScene): Map<string, string> {
   const parents = new Map<string, string>();
+  if (scene.psTree) {
+    const visited = new WeakSet<PsTreeNode>();
+    const pending = [...scene.psTree];
+    while (pending.length) {
+      const node = pending.pop()!;
+      if (visited.has(node)) {
+        continue;
+      }
+      visited.add(node);
+      for (const child of node.children) {
+        if (!parents.has(child.entityId)) {
+          parents.set(child.entityId, node.entityId);
+        }
+        pending.push(child);
+      }
+    }
+    return parents;
+  }
   for (const entity of buildEntityIndex(scene).values()) {
     for (const child of childrenForEntity(scene, entity)) {
       if (!parents.has(child.entityId)) {
@@ -147,6 +185,39 @@ export function ancestorIdsForEntity(scene: GksScene, entityId: string): string[
 }
 
 export function descendantIdsForEntity(scene: GksScene, entityId: string): string[] {
+  if (scene.psTree) {
+    const occurrences: PsTreeNode[] = [];
+    const scanned = new WeakSet<PsTreeNode>();
+    const allNodes = [...scene.psTree];
+    while (allNodes.length) {
+      const node = allNodes.pop()!;
+      if (scanned.has(node)) {
+        continue;
+      }
+      scanned.add(node);
+      if (node.entityId === entityId) {
+        occurrences.push(node);
+      }
+      allNodes.push(...node.children);
+    }
+    const descendants: string[] = [];
+    const ids = new Set<string>();
+    const visited = new WeakSet<PsTreeNode>();
+    const pending = occurrences.flatMap((node) => node.children);
+    while (pending.length) {
+      const node = pending.pop()!;
+      if (visited.has(node)) {
+        continue;
+      }
+      visited.add(node);
+      if (node.entityId !== entityId && !ids.has(node.entityId)) {
+        descendants.push(node.entityId);
+        ids.add(node.entityId);
+      }
+      pending.push(...node.children);
+    }
+    return descendants;
+  }
   const entity = buildEntityIndex(scene).get(entityId);
   if (!entity) {
     return [];
@@ -167,8 +238,27 @@ export function descendantIdsForEntity(scene: GksScene, entityId: string): strin
   return descendants;
 }
 
+export function effectiveHiddenIdsForPsScene(scene: GksScene, hiddenEntityIds: ReadonlySet<string>): Set<string> {
+  const visible = new Set<string>();
+  const visited = new WeakSet<PsTreeNode>();
+  const pending = [...(scene.psTree ?? [])];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (hiddenEntityIds.has(node.entityId) || visited.has(node)) {
+      continue;
+    }
+    visited.add(node);
+    visible.add(node.entityId);
+    pending.push(...node.children);
+  }
+  return new Set([...buildEntityIndex(scene).keys()].filter((entityId) => !visible.has(entityId)));
+}
+
 export function kindFromEntityId(entityId: string): EntityKind | undefined {
   const [kind] = entityId.split(":");
+  if (entityId.includes(":ps/")) {
+    return psKinds.has(kind as EntityKind) ? kind as EntityKind : undefined;
+  }
   if (
     kind === "body" ||
     kind === "region" ||
@@ -183,3 +273,9 @@ export function kindFromEntityId(entityId: string): EntityKind | undefined {
   }
   return undefined;
 }
+
+const psKinds = new Set<EntityKind>([
+  "body", "face", "loop", "coedge", "edge", "vertex", "model", "partition",
+  "assembly", "instance", "lump", "group", "referenceInstance", "constructionSurface",
+  "constructionCurve", "constructionPoint", "orphanGeometry", "transform", "object"
+]);

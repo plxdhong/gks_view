@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 src/**
+tests/**
 webview/src/**
 webview/vite.config.ts
 tsconfig.json

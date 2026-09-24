@@ -38,13 +38,19 @@ export class TopologyTreePanel {
     const list = document.createElement("div");
     list.className = "topology-tree";
 
-    for (const body of scene.topology.bodies) {
-      list.append(this.renderNode(scene, body, state, 0));
-    }
+    if (scene.psTree) {
+      for (const root of scene.psTree) {
+        list.append(this.renderNode(scene, root, state, 0));
+      }
+    } else {
+      for (const body of scene.topology.bodies) {
+        list.append(this.renderNode(scene, body, state, 0));
+      }
 
-    const looseEntities = this.looseEntities(scene);
-    if (looseEntities.length) {
-      list.append(this.renderGroup("Loose Entities", "loose", looseEntities, state, 0));
+      const looseEntities = this.looseEntities(scene);
+      if (looseEntities.length) {
+        list.append(this.renderGroup("Loose Entities", "loose", looseEntities, state, 0));
+      }
     }
     this.host.append(list);
 
@@ -177,7 +183,8 @@ export class TopologyTreePanel {
 
     const kind = document.createElement("span");
     kind.className = `kind-token kind-${entity.kind}`;
-    kind.textContent = entity.kind;
+    kind.textContent = shortKind(entity.kind);
+    kind.title = entity.kind;
 
     const label = document.createElement("span");
     label.className = "tree-label";
@@ -226,6 +233,17 @@ export class TopologyTreePanel {
     this.expandedEntityIds.clear();
     this.expandedGroupIds.clear();
     this.expandedGroupIds.add("loose");
+    if (scene.psTree) {
+      const pending = scene.psTree.map((node) => ({ node, depth: 0 }));
+      while (pending.length) {
+        const { node, depth } = pending.shift()!;
+        if (depth <= 3 && node.children.length) {
+          this.expandedEntityIds.add(node.entityId);
+          pending.push(...node.children.map((child) => ({ node: child, depth: depth + 1 })));
+        }
+      }
+      return;
+    }
     for (const entity of this.expandableEntities(scene)) {
       this.expandedEntityIds.add(entity.entityId);
     }
@@ -279,4 +297,14 @@ export class TopologyTreePanel {
       this.expandedGroupIds.add(groupId);
     }
   }
+}
+
+function shortKind(kind: string): string {
+  const labels: Record<string, string> = {
+    model: "model", partition: "part", assembly: "asm",
+    instance: "inst", referenceInstance: "ref", constructionSurface: "surface",
+    constructionCurve: "curve", constructionPoint: "point", orphanGeometry: "geom",
+    transform: "xform", object: "object"
+  };
+  return labels[kind] ?? kind;
 }

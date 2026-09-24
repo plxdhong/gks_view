@@ -1,9 +1,10 @@
 import * as path from "node:path";
 import * as vscode from "vscode";
 import type { GksCase, GksCompare, GksRun, GksRunCaseRef, GksScene } from "@gk-workbench/gks-schema";
+import { createPsScene } from "../ps/PsScene";
 
 export interface WorkbenchInitialData {
-  mode: "case" | "scene" | "compare" | "run" | "adapter";
+  mode: "case" | "scene" | "compare" | "run" | "adapter" | "ps";
   case?: GksCase;
   caseBasePath?: string;
   compare?: GksCompare;
@@ -55,6 +56,27 @@ export interface WorkbenchRunSceneResult {
 }
 
 export class GksFileLoader {
+  async loadPsPair(uri: vscode.Uri): Promise<WorkbenchInitialData> {
+    const match = /^(.*)_(brep|facet)\.json$/i.exec(uri.path);
+    if (!match) {
+      throw new Error(`${uri.fsPath} is not a PS _brep.json or _facet.json file`);
+    }
+    const brepUri = match[2].toLowerCase() === "brep" ? uri : uri.with({ path: `${match[1]}_brep.json` });
+    const facetUri = match[2].toLowerCase() === "facet" ? uri : uri.with({ path: `${match[1]}_facet.json` });
+    const [brep, facet] = await Promise.all([
+      this.readOptionalJson(brepUri, uri),
+      this.readOptionalJson(facetUri, uri)
+    ]);
+    const title = path.posix.basename(match[1]);
+    const scene = createPsScene(brep, facet, title);
+    return {
+      mode: "ps",
+      snapshots: [{ snapshotId: scene.snapshotId, title }],
+      activeSnapshotId: scene.snapshotId,
+      scene
+    };
+  }
+
   async loadCase(uri: vscode.Uri): Promise<WorkbenchInitialData> {
     const gkcase = await this.readJson<GksCase>(uri);
     const firstSnapshot = gkcase.snapshots[0];
@@ -177,6 +199,18 @@ export class GksFileLoader {
   private async readJson<T>(uri: vscode.Uri): Promise<T> {
     const bytes = await vscode.workspace.fs.readFile(uri);
     return JSON.parse(Buffer.from(bytes).toString("utf8")) as T;
+  }
+
+  private async readOptionalJson(uri: vscode.Uri, openedUri: vscode.Uri): Promise<unknown | undefined> {
+    try {
+      return await this.readJson<unknown>(uri);
+    } catch (error) {
+      if (uri.toString() !== openedUri.toString()
+        && error instanceof vscode.FileSystemError && error.code === "FileNotFound") {
+        return undefined;
+      }
+      throw error;
+    }
   }
 
   private async loadRunCase(runUri: vscode.Uri, caseRef: GksRunCaseRef): Promise<WorkbenchRunCase> {

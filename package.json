@@ -28,6 +28,7 @@
     "package:vscode": "bun run generate:mocks && bun run validate:mocks && bun run build && bun scripts/package-vscode-extension.mjs",
     "verify:adapter": "bun scripts/verify-mock-adapter.mjs",
     "verify:camera": "bun test packages/vscode-extension/webview/tests",
+    "verify:ps": "bun test packages/vscode-extension/tests/PsScene.test.ts",
     "validate:mocks": "bun scripts/validate-mocks.mjs"
   },
   "workspaces": [
