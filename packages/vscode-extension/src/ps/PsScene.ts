@@ -36,6 +36,14 @@ function tagKey(value: unknown): string | undefined {
   return typeof value === "number" || typeof value === "string" ? String(value) : undefined;
 }
 
+function sharedEntityId(kind: EntityKind, body: PsTreeNode | undefined, tag: unknown): string | undefined {
+  const key = tagKey(tag);
+  if (!body || key === undefined || (kind !== "edge" && kind !== "vertex")) {
+    return undefined;
+  }
+  return `${kind}:ps/${body.entityId.slice("body:ps/".length)}/tag/${encodeURIComponent(key)}`;
+}
+
 function pointCoordinates(value: unknown): Vec3 | undefined {
   if (!Array.isArray(value) || value.length !== 3) {
     return undefined;
@@ -72,18 +80,19 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
   const facesByBody = new WeakMap<PsTreeNode, Map<string, PsTreeNode>>();
   const edgesByBody = new WeakMap<PsTreeNode, Map<string, PsTreeNode>>();
   const geometriesByBody = new WeakMap<PsTreeNode, GeometryIndex>();
+  const edgeSources = new WeakMap<PsTreeNode, "edges" | "wireEdges">();
 
-  const makeNode = (kind: EntityKind, path: string, label: string, data: JsonObject): PsTreeNode => {
+  const makeNode = (kind: EntityKind, path: string, label: string, data: JsonObject, sharedId?: string): PsTreeNode => {
     const tag = data.tag;
     const node: PsTreeNode = {
-      entityId: `${kind}:ps/${path}`,
+      entityId: sharedId ?? `${kind}:ps/${path}`,
       kind,
       sourceKernel: "PS",
       debugName: label,
       ...(tagKey(tag) === undefined ? {} : { kernelTag: tag as string | number }),
       children: []
     };
-    properties[node.entityId] = { data };
+    properties[node.entityId] ??= { data };
     return node;
   };
 
@@ -94,8 +103,10 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
     label: string,
     ownerBody?: PsTreeNode
   ): PsTreeNode => {
-    const fields: JsonObject = tagKey(data.tag) === undefined ? {} : { tag: data.tag };
-    const node = makeNode(kind, path, label, fields);
+    const node = makeNode(kind, path, label,
+      tagKey(data.tag) === undefined ? {} : { tag: data.tag },
+      sharedEntityId(kind, ownerBody, data.tag));
+    const fields = properties[node.entityId].data as JsonObject;
     const body = kind === "body" ? node : ownerBody;
     const tag = tagKey(data.tag);
 
@@ -140,7 +151,11 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
         node.children.push(...value.map((item, index) => {
           const childKind = listKinds[key] ?? "object";
           const childLabel = childKind === "object" ? `${key} [${index}]` : childKind;
-          return parseNode(item, childKind, `${path}/${key}/${index}`, childLabel, body);
+          const child = parseNode(item, childKind, `${path}/${key}/${index}`, childLabel, body);
+          if (kind === "lump" && (key === "edges" || key === "wireEdges")) {
+            edgeSources.set(child, key);
+          }
+          return child;
         }));
       } else if (isObject(value) && kind === "edge" && (key === "startVertex" || key === "endVertex")) {
         node.children.push(parseNode(value, "vertex", `${path}/${key}`, key, body));
@@ -182,8 +197,10 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
     const edges = lump.children.filter((child) => child.kind === "edge");
     const canonical = new Map<string, PsTreeNode>();
     // Prefer the full edge record in edges when wireEdges repeats the same tag.
-    for (const edge of [...edges].sort((left, right) =>
-      Number(right.entityId.includes("/edges/")) - Number(left.entityId.includes("/edges/")))) {
+    for (const edge of [
+      ...edges.filter((item) => edgeSources.get(item) === "edges"),
+      ...edges.filter((item) => edgeSources.get(item) !== "edges")
+    ]) {
       const key = tagKey(edge.kernelTag);
       if (key !== undefined && !canonical.has(key)) {
         canonical.set(key, edge);
@@ -272,7 +289,7 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
             node = makeNode(kind, `facetBodies/${bodyIndex}/${key}/${index}`, kind, {
               ...(kind === "face" ? { faceTag: item.faceTag } : { curveTag: item.curveTag }),
               pointCount: Array.isArray(item.points) ? item.points.length / 3 : 0
-            });
+            }, sharedEntityId(kind, body, tag));
             if (tag !== undefined) {
               node.kernelTag = kind === "face" ? item.faceTag as number | string : item.curveTag as number | string;
             }
@@ -302,20 +319,24 @@ export function createPsScene(brep: unknown, facet: unknown, title: string): Gks
   }
 
   const reachable = new Set<string>();
+  const visited = new WeakSet<PsTreeNode>();
+  const drawnVertices = new Set<string>();
   const pending = [root];
   while (pending.length) {
     const node = pending.pop()!;
-    if (reachable.has(node.entityId)) {
+    if (visited.has(node)) {
       continue;
     }
+    visited.add(node);
     reachable.add(node.entityId);
-    if (node.kind === "vertex") {
+    if (node.kind === "vertex" && !drawnVertices.has(node.entityId)) {
       const fields = properties[node.entityId]?.data;
       const geometry = isObject(fields) && isObject(fields.geometry) ? fields.geometry : undefined;
       const nested = isObject(geometry?.geometry) ? geometry.geometry : undefined;
       const position = pointCoordinates(geometry?.point ?? nested?.point);
       if (position) {
         vertexPoints.push({ entityId: node.entityId, position });
+        drawnVertices.add(node.entityId);
       }
     }
     pending.push(...node.children);

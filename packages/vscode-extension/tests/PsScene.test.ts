@@ -25,6 +25,24 @@ function findNode(root: PsTreeNode, kind: string, tag: number): PsTreeNode {
   throw new Error(`Missing ${kind} #${tag}`);
 }
 
+function findNodes(root: PsTreeNode, kind: string, tag: number): PsTreeNode[] {
+  const matches: PsTreeNode[] = [];
+  const visited = new WeakSet<PsTreeNode>();
+  const pending = [root];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (visited.has(node)) {
+      continue;
+    }
+    visited.add(node);
+    if (node.kind === kind && node.kernelTag === tag) {
+      matches.push(node);
+    }
+    pending.push(...node.children);
+  }
+  return matches;
+}
+
 test("PS pair links facet triangles and curves to the matching BRep topology", () => {
   const scene = createPsScene(brep, facet, "Sample");
   const root = scene.psTree![0];
@@ -115,4 +133,56 @@ test("geometry references resolve within the owning body, even when tags repeat"
   assert.deepEqual((scene.properties[first.entityId].data.geometry as { point: string[] }).point, ["1", "2", "3"]);
   assert.deepEqual((scene.properties[second.entityId].data.geometry as { point: string[] }).point, ["4", "5", "6"]);
   assert.deepEqual(scene.geometry.vertexPoints.map((point) => point.position).sort((a, b) => a[0] - b[0]), [[1, 2, 3], [4, 5, 6]]);
+});
+
+test("repeated Edge and Vertex tags control one model entity within each body", () => {
+  const scene = createPsScene({ partitions: [{ tag: 1, bodies: [
+    { tag: 10, entGeometries: {
+      points: [{ tag: 100, point: ["1", "2", "3"] }],
+      curves: [{ tag: 200, curve: "line" }]
+    }, lumps: [
+      { tag: 20, edges: [
+        { tag: 30, geometry: 200, startVertex: { tag: 109, geometry: 100 } },
+        { tag: 31, startVertex: { tag: 109, geometry: 100 } }
+      ] },
+      { tag: 21, edges: [{ tag: 30, startVertex: { tag: 109, geometry: 100 },
+        endVertex: { tag: 111, geometry: { point: ["4", "5", "6"] } } }] }
+    ] },
+    { tag: 11, entGeometries: { points: [{ tag: 100, point: ["9", "8", "7"] }] },
+      isolatedVertices: [{ tag: 109, geometry: 100 }] }
+  ] }] }, {
+    bodies: [{ bodyTag: 10, faces: [], curves: [{ curveTag: 30, points: [0, 0, 0, 1, 0, 0] }] }]
+  }, "shared tags");
+  const partition = findNode(scene.psTree![0], "partition", 1);
+  const body = findNode(partition, "body", 10);
+  const otherBody = findNode(partition, "body", 11);
+  const sharedEdges = findNodes(body, "edge", 30);
+  const sharedVertices = findNodes(body, "vertex", 109);
+  const otherEdge = findNode(body, "edge", 31);
+  const otherVertex = findNode(otherBody, "vertex", 109);
+
+  assert.equal(sharedEdges.length, 2);
+  assert.notEqual(sharedEdges[0], sharedEdges[1]);
+  assert.equal(sharedEdges[0].entityId, sharedEdges[1].entityId);
+  assert.equal(sharedVertices.length, 3);
+  assert.equal(new Set(sharedVertices.map((vertex) => vertex.entityId)).size, 1);
+  assert.notEqual(sharedVertices[0].entityId, otherVertex.entityId);
+  assert.equal(scene.geometry.edgePolylines[0].entityId, sharedEdges[0].entityId);
+  assert.equal(scene.geometry.vertexPoints.filter((point) => point.entityId === sharedVertices[0].entityId).length, 1);
+  assert.ok(scene.geometry.vertexPoints.some((point) => point.entityId === otherVertex.entityId));
+  assert.ok(scene.geometry.vertexPoints.some((point) => point.entityId === findNode(body, "vertex", 111).entityId));
+  assert.equal((scene.properties[sharedEdges[0].entityId].data.geometry as { curve: string }).curve, "line");
+  assert.ok(buildEntityIndex(scene).has(sharedVertices[0].entityId));
+  assert.ok(buildEntityIndex(scene).has(findNode(body, "vertex", 111).entityId));
+  assert.ok(descendantIdsForEntity(scene, body.entityId).includes(findNode(body, "vertex", 111).entityId));
+
+  const hiddenVertex = effectiveHiddenIdsForPsScene(scene, new Set([sharedVertices[0].entityId]));
+  assert.ok(hiddenVertex.has(sharedVertices[0].entityId));
+  assert.ok(!hiddenVertex.has(otherVertex.entityId));
+  const hiddenEdge = effectiveHiddenIdsForPsScene(scene, new Set([sharedEdges[0].entityId]));
+  assert.ok(hiddenEdge.has(sharedEdges[1].entityId));
+  assert.ok(!hiddenEdge.has(sharedVertices[0].entityId));
+  const hiddenBothEdges = effectiveHiddenIdsForPsScene(scene,
+    new Set([sharedEdges[0].entityId, otherEdge.entityId]));
+  assert.ok(hiddenBothEdges.has(sharedVertices[0].entityId));
 });

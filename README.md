@@ -70,6 +70,8 @@ Useful development URLs:
 Open either PS file in VS Code to inspect its BRep hierarchy and facet geometry.
 Objects inside lists appear directly under their parent in the topology tree.
 Coedges show their referenced edges, and repeated wire edges appear only once.
+Repeated Edge or Vertex tags remain visible at each location in the tree but
+share one selection and visibility state within a body.
 Other BRep fields, including transforms, appear in Properties. Face, coedge,
 edge, and vertex geometry references resolve through their body's
 `entGeometries` lists. Facet faces are triangle triples, facet curves are

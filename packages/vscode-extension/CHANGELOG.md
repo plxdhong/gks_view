@@ -10,6 +10,7 @@
 
 - Show array entries directly under their parent, place shared edges below referencing coedges, and deduplicate wire edges.
 - Resolve PS face, coedge, edge, and vertex geometry from the owning body's `entGeometries` lists, including vertex markers from point coordinates.
+- Keep repeated PS Edge and Vertex tags in the topology tree while controlling their selection and visibility as one entity per body.
 
 ### Fixed
 
