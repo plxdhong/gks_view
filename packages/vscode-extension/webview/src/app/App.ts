@@ -1,5 +1,5 @@
 import type { EntityIdentity, GksScene, WorkbenchInitialData, WorkbenchRunSceneResult } from "../schema/GksScene";
-import { buildEntityIndex, descendantIdsForEntity } from "../schema/GksScene";
+import { buildEntityIndex, descendantIdsForEntity, effectiveHiddenIdsForPsScene } from "../schema/GksScene";
 import { PropertyPanel } from "../panels/PropertyPanel";
 import { SnapshotTimeline } from "../panels/SnapshotTimeline";
 import { TopologyTreePanel } from "../panels/TopologyTreePanel";
@@ -166,6 +166,8 @@ export class App {
     const selected = this.selectedEntityId ? this.entityIndex.get(this.selectedEntityId) : undefined;
     this.mustQuery(".brand-meta").textContent = this.titleText();
     this.renderRunCases();
+    this.mustQuery<HTMLElement>(".timeline-panel").hidden = this.data.mode === "ps";
+    this.mustQuery<HTMLElement>(".debug-panel").hidden = this.data.mode === "ps";
     this.timeline.render(this.data.snapshots, this.data.activeSnapshotId);
     this.renderTopologyTree();
     this.propertyPanel.render(this.scene, selected);
@@ -840,6 +842,9 @@ export class App {
   }
 
   private effectiveHiddenEntityIdsForScene(scene: GksScene): Set<string> {
+    if (scene.psTree) {
+      return effectiveHiddenIdsForPsScene(scene, this.hiddenEntityIds);
+    }
     const effectiveHidden = new Set<string>();
     for (const entityId of this.hiddenEntityIds) {
       effectiveHidden.add(entityId);

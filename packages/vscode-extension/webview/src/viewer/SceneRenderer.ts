@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { TrackballControls } from "three/examples/jsm/controls/TrackballControls.js";
 import type { EntityKind, GksScene } from "../schema/GksScene";
 import { kindFromEntityId } from "../schema/GksScene";
+import { updateCameraClipping } from "./CameraClipping";
 
 export interface PickedEntity {
   entityId: string;
@@ -86,7 +87,6 @@ export class SceneRenderer {
     this.controls.panSpeed = perspectivePanSpeed;
     this.controls.staticMoving = true;
     this.controls.keys = ["KeyA", "KeyS", "ShiftLeft"];
-    this.controls.addEventListener("change", this.handleControlsChange);
 
     this.scene.add(this.root);
     this.scene.add(new THREE.HemisphereLight("#ffffff", "#8c8c82", 1.1));
@@ -109,7 +109,6 @@ export class SceneRenderer {
     this.resizeObserver?.disconnect();
     this.renderer.domElement.removeEventListener("pointerdown", this.handlePointerDown);
     this.renderer.domElement.removeEventListener("pointerup", this.handlePointerUp);
-    this.controls.removeEventListener("change", this.handleControlsChange);
     this.controls.dispose();
     this.renderer.dispose();
   }
@@ -200,9 +199,9 @@ export class SceneRenderer {
       this.resetView();
     } else {
       this.updateOrthographicFrame();
-      this.updateClippingForCurrentView();
       this.controls.handleResize();
       this.controls.update();
+      this.updateClippingForCurrentView();
     }
     this.hasLoadedScene = true;
     this.updateViewDependentDecorations();
@@ -225,9 +224,9 @@ export class SceneRenderer {
     this.controls.target.copy(center);
     this.activeCamera.up.copy(safeCameraUp(this.defaultCameraUp, viewDirection));
     this.activeCamera.position.copy(center).addScaledVector(viewDirection, distance);
-    this.updateCameraClipping(this.activeCamera, distance, radius);
     this.controls.handleResize();
     this.controls.update();
+    this.updateClippingForCurrentView();
     this.updateViewDependentDecorations();
     this.updateScaleBar();
   }
@@ -263,9 +262,9 @@ export class SceneRenderer {
     }
 
     this.activeCamera.position.copy(target).addScaledVector(direction, distance);
-    this.updateCameraClipping(this.activeCamera, distance, radius);
     this.controls.handleResize();
     this.controls.update();
+    this.updateClippingForCurrentView();
     this.updateViewDependentDecorations();
     this.updateScaleBar();
   }
@@ -300,6 +299,7 @@ export class SceneRenderer {
     const center = box.getCenter(new THREE.Vector3());
     this.controls.target.copy(center);
     this.controls.update();
+    this.updateClippingForCurrentView();
   }
 
   private addEntityObject(entityId: string, object: THREE.Object3D, renderKind: RenderKind): void {
@@ -495,15 +495,12 @@ export class SceneRenderer {
     requestAnimationFrame(this.animate);
     this.updateControlTuning();
     this.controls.update();
-    this.updateViewDependentDecorations();
-    this.updateScaleBar();
-    this.renderer.render(this.scene, this.activeCamera);
-  };
-
-  private handleControlsChange = (): void => {
+    // TrackballControls can omit change events for target-only changes or tiny
+    // rotations. Fit clipping to the actual camera pose before every render.
     this.updateClippingForCurrentView();
     this.updateViewDependentDecorations();
     this.updateScaleBar();
+    this.renderer.render(this.scene, this.activeCamera);
   };
 
   private updateControlTuning(): void {
@@ -582,6 +579,7 @@ export class SceneRenderer {
     if (hit?.point) {
       this.controls.target.copy(hit.point);
       this.controls.update();
+      this.updateClippingForCurrentView();
       this.updateViewDependentDecorations();
       this.updateScaleBar();
     }
@@ -631,14 +629,6 @@ export class SceneRenderer {
     this.orthographicCamera.updateProjectionMatrix();
   }
 
-  private updateCameraClipping(camera: WorkbenchCamera, distance: number, radius: number): void {
-    const nearFarPadding = Math.max(radius * 8, distance * 2, 1e-9);
-    const minimumNear = Math.max(radius * 1e-4, 1e-12);
-    camera.near = Math.max(distance - nearFarPadding, minimumNear);
-    camera.far = Math.max(distance + nearFarPadding, camera.near * 10);
-    camera.updateProjectionMatrix();
-  }
-
   private updateClippingForCurrentView(): void {
     const bounds = this.sceneBounds.isEmpty() ? new THREE.Box3(
       new THREE.Vector3(-1, -1, -1),
@@ -646,8 +636,7 @@ export class SceneRenderer {
     ) : this.sceneBounds;
     const center = bounds.getCenter(new THREE.Vector3());
     const radius = radiusForBounds(bounds, 1);
-    const distance = this.activeCamera.position.distanceTo(center);
-    this.updateCameraClipping(this.activeCamera, distance, radius);
+    updateCameraClipping(this.activeCamera, center, radius);
   }
 
   private visibleWorldHeight(): number {

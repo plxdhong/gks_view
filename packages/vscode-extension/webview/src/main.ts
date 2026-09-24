@@ -1,5 +1,6 @@
 import "./style.css";
 import { App } from "./app/App";
+import { createPsScene } from "../../src/ps/PsScene";
 import type { GksCase, GksCompare, GksRun, GksScene, WorkbenchInitialData, WorkbenchRunCase } from "./schema/GksScene";
 
 async function loadDevData(): Promise<WorkbenchInitialData> {
@@ -8,6 +9,11 @@ async function loadDevData(): Promise<WorkbenchInitialData> {
   const scenePath = params.get("scene");
   const comparePath = params.get("compare");
   const runPath = params.get("run");
+  const psPath = params.get("ps");
+
+  if (psPath) {
+    return loadPsFromExamples(psPath);
+  }
 
   if (runPath) {
     return loadRunFromExamples(runPath);
@@ -30,6 +36,26 @@ async function loadDevData(): Promise<WorkbenchInitialData> {
   }
 
   return loadCaseFromExamples("mock/HoleGrow.Case_001/index.gkcase.json");
+}
+
+async function loadPsFromExamples(filePath: string): Promise<WorkbenchInitialData> {
+  const safePath = safeExamplesPath(filePath);
+  const match = /^(.*)_(brep|facet)\.json$/i.exec(safePath);
+  if (!match) {
+    throw new Error("PS example must end in _brep.json or _facet.json");
+  }
+  const [brep, facet] = await Promise.all([
+    fetchJson<unknown>(`/${match[1]}_brep.json`),
+    fetchJson<unknown>(`/${match[1]}_facet.json`)
+  ]);
+  const title = basename(match[1]);
+  const scene = createPsScene(brep, facet, title);
+  return {
+    mode: "ps",
+    snapshots: [{ snapshotId: scene.snapshotId, title }],
+    activeSnapshotId: scene.snapshotId,
+    scene
+  };
 }
 
 async function loadCaseFromExamples(casePath: string): Promise<WorkbenchInitialData> {

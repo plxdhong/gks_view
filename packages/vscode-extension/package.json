@@ -2,9 +2,9 @@
   "name": "geometry-kernel-workbench",
   "displayName": "Geometry Kernel Workbench",
   "description": "Inspect GKS geometry snapshots with topology trees, properties, compare views, and Three.js rendering.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "publisher": "gk-workbench",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "icon": "resources/icon.png",
   "repository": {
     "type": "git",
@@ -54,6 +54,7 @@
   "activationEvents": [
     "onCustomEditor:gkWorkbench.gkcase",
     "onCustomEditor:gkWorkbench.gkscene",
+    "onCustomEditor:gkWorkbench.ps",
     "onCustomEditor:gkWorkbench.gkcompare",
     "onCustomEditor:gkWorkbench.gkrun",
     "onCommand:gkWorkbench.openSnapshot",
@@ -106,6 +107,15 @@
           {
             "filenamePattern": "*.gkscene.json"
           }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "gkWorkbench.ps",
+        "displayName": "PS BRep and Facet",
+        "selector": [
+          { "filenamePattern": "*_brep.json" },
+          { "filenamePattern": "*_facet.json" }
         ],
         "priority": "default"
       },

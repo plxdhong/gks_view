@@ -6,7 +6,20 @@ export type EntityKind =
   | "loop"
   | "coedge"
   | "edge"
-  | "vertex";
+  | "vertex"
+  | "model"
+  | "partition"
+  | "assembly"
+  | "instance"
+  | "lump"
+  | "group"
+  | "referenceInstance"
+  | "constructionSurface"
+  | "constructionCurve"
+  | "constructionPoint"
+  | "orphanGeometry"
+  | "transform"
+  | "object";
 
 export interface Vec3 extends Array<number> {
   0: number;
@@ -26,6 +39,10 @@ export interface EntityIdentity {
   stableId?: string;
   sourceKernel: string;
   debugName?: string;
+}
+
+export interface PsTreeNode extends EntityIdentity {
+  children: PsTreeNode[];
 }
 
 export interface GksCase {
@@ -108,11 +125,13 @@ export interface GksScene {
   bbox?: BBox;
   cameraHint?: CameraHint;
   topology: GksTopology;
+  psTree?: PsTreeNode[];
   geometry: GksGeometry;
   properties?: EntityPropertiesMap;
   debug?: GksDebug;
   capabilities?: Record<string, unknown>;
 }
+
 
 export interface GksSceneSource {
   kernel: string;
